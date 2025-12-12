@@ -1,5 +1,6 @@
 """Testing module for :py:mod:`trackers.base` module."""
 
+import aiohttp
 import asyncio
 import signal
 from pathlib import Path
@@ -527,6 +528,375 @@ class TestBaseAsyncMentionTracker:
         loop.is_closed = Mock(return_value=False)
         return loop
 
+    # check_mentions_async
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_check_mentions_async_not_implemented(
+        self,
+    ):
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        with pytest.raises(NotImplementedError):
+            await instance.check_mentions_async()
+
+    # is_processed_async
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_is_processed_async_true(self, mocker):
+        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
+        mock_is_processed_orm = mocker.patch(
+            "trackers.models.Mention.objects.is_processed"
+        )
+        mock_is_processed_orm.return_value = True
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        result = await instance.is_processed_async("test_item_id")
+        assert result is True
+        mock_is_processed_orm.assert_called_once_with("test_item_id", "test_platform")
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_is_processed_async_false(self, mocker):
+        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
+        mock_is_processed_orm = mocker.patch(
+            "trackers.models.Mention.objects.is_processed"
+        )
+        mock_is_processed_orm.return_value = False
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        result = await instance.is_processed_async("test_item_id")
+        assert result is False
+        mock_is_processed_orm.assert_called_once_with("test_item_id", "test_platform")
+
+    # log_action_async
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_log_action_async_functionality(
+        self, mocker
+    ):
+        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
+        mocked_log = mocker.patch("trackers.base.BaseAsyncMentionTracker.log_action")
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        await instance.log_action_async("test_action", "test_details")
+        mocked_log.assert_called_once_with("test_action", "test_details")
+
+    # mark_processed_async
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_mark_processed_async_success(
+        self, mocker
+    ):
+        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
+        mock_mark_processed_orm = mocker.AsyncMock(return_value=None)
+        mocker.patch(
+            "trackers.models.Mention.objects.mark_processed",
+            new=mock_mark_processed_orm,
+        )
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        test_data = {
+            "suggester": "test_user",
+            "subreddit": "test_subreddit",
+        }
+        await instance.mark_processed_async("test_item_id", test_data)
+        mock_mark_processed_orm.assert_called_once_with(
+            "test_item_id", "test_platform", test_data
+        )
+
+    # process_mention_async
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_process_mention_async_already_processed(
+        self, mocker
+    ):
+        mock_is_processed = mocker.patch.object(
+            BaseAsyncMentionTracker, "is_processed_async"
+        )
+        mock_is_processed.return_value = True
+        mock_callback, username = mocker.MagicMock(), mocker.MagicMock()
+        instance = BaseAsyncMentionTracker("test_platform", mock_callback)
+        result = await instance.process_mention_async("test_item_id", {}, username)
+        assert result is False
+        mock_callback.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_process_mention_async_success(
+        self, mocker
+    ):
+        mock_is_processed = mocker.patch.object(
+            BaseAsyncMentionTracker, "is_processed_async"
+        )
+        mock_is_processed.return_value = False
+        mock_prepare_contribution_data = mocker.patch.object(
+            BaseAsyncMentionTracker, "prepare_contribution_data"
+        )
+        mock_new_contribution = mocker.AsyncMock(return_value=None)
+        mock_post_new_contribution = mocker.patch.object(
+            BaseAsyncMentionTracker, "post_new_contribution_async", new=mock_new_contribution
+        )
+        mock_mark_processed = mocker.AsyncMock(return_value=None)
+        mocker.patch.object(
+            BaseAsyncMentionTracker, "mark_processed_async", new=mock_mark_processed
+        )
+        mock_log_action = mocker.AsyncMock(return_value=None)
+        mocker.patch.object(
+            BaseAsyncMentionTracker, "log_action_async", new=mock_log_action
+        )
+        mock_logger = mocker.MagicMock()
+        mock_callback = mocker.MagicMock(return_value={"parsed": "data"})
+        instance = BaseAsyncMentionTracker("test_platform", mock_callback)
+        instance.logger = mock_logger
+        test_data = {"suggester": "test_user", "content": "content"}
+        username = "username"
+        result = await instance.process_mention_async(
+            "test_item_id", test_data, username
+        )
+        assert result is True
+        mock_callback.assert_called_once_with("content", "username")
+        mock_prepare_contribution_data.assert_called_once_with(
+            {"parsed": "data"}, test_data
+        )
+        mock_post_new_contribution.assert_called_once()
+        mock_mark_processed.assert_called_once_with("test_item_id", test_data)
+        mock_logger.info.assert_called_once_with("Processed mention from test_user")
+        mock_log_action.assert_called_once_with(
+            "mention_processed", "Item: test_item_id, Suggester: test_user"
+        )
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_process_mention_async_exception(
+        self, mocker
+    ):
+        mock_is_processed = mocker.patch.object(
+            BaseAsyncMentionTracker, "is_processed_async"
+        )
+        mock_is_processed.return_value = False
+        mock_logger = mocker.MagicMock()
+        mock_log_action = mocker.AsyncMock(return_value=None)
+        mocker.patch.object(
+            BaseAsyncMentionTracker, "log_action_async", new=mock_log_action
+        )
+        mock_callback = mocker.MagicMock(side_effect=Exception("Test error"))
+        instance = BaseAsyncMentionTracker("test_platform", mock_callback)
+        instance.logger = mock_logger
+        result = await instance.process_mention_async("test_item_id", {}, "username")
+        assert result is False
+        mock_logger.error.assert_called_once_with(
+            "Error processing mention test_item_id: Test error"
+        )
+        mock_log_action.assert_called_once_with(
+            "processing_error", "Item: test_item_id, Error: Test error"
+        )
+
+    # # post_new_contribution_async
+    @pytest.mark.asyncio
+    async def test_base_basementiontracker_post_new_contribution_async_success(self, mocker):
+        # Mock aiohttp session
+        mock_session = mocker.AsyncMock()
+        mock_response_cm = mocker.AsyncMock()
+        mock_response = mocker.AsyncMock()
+        # Setup response chain
+        mock_session.post.return_value = mock_response_cm
+        mock_response_cm.__aenter__.return_value = mock_response
+        mock_response_cm.__aexit__.return_value = None
+        # Mock response data
+        mock_response.status = 200
+        mock_response.raise_for_status = mocker.AsyncMock()
+        mock_response.json = mocker.AsyncMock(return_value={"success": True})
+        # Mock aiohttp.ClientSession
+        mocker.patch("aiohttp.ClientSession", return_value=mock_session)
+        # Create instance and mock initialize_session
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.initialize_session = mocker.AsyncMock()
+        instance.session = mock_session
+        # Mock logger
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        result = await instance.post_new_contribution_async(contribution_data)
+        # Verify calls
+        instance.initialize_session.assert_called_once()
+        mock_session.post.assert_called_once_with(
+            "http://127.0.0.1:8000/api/addcontribution",
+            json=contribution_data,
+            headers={"Content-Type": "application/json"},
+            timeout=mocker.ANY
+        )
+        mock_response.raise_for_status.assert_called_once()
+        mock_response.json.assert_called_once()
+        assert result == {"success": True}
+        # Verify logging
+        instance.logger.info.assert_any_call(
+            "🌐 Async API Request: POST http://127.0.0.1:8000/api/addcontribution with data: {'username': 'test_user', 'platform': 'Testplatform'}"
+        )
+        instance.logger.info.assert_any_call("📡 Async API Response Status: 200 for http://127.0.0.1:8000/api/addcontribution")
+        instance.logger.info.assert_any_call("✅ Async API Response received: 19 bytes")
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_post_new_contribution_async_connection_error(self, mocker):
+        mock_session = mocker.AsyncMock()
+        mock_session.post.side_effect = aiohttp.ClientConnectionError()
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.initialize_session = mocker.AsyncMock()
+        instance.session = mock_session
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        with pytest.raises(
+            Exception,
+            match="Cannot connect to the API server. Make sure it's running on localhost."
+        ):
+            await instance.post_new_contribution_async(contribution_data)
+        instance.logger.error.assert_called_once_with(
+            "❌ Async API connection error: Cannot connect to the API server. Make sure it's running on localhost."
+        )
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_post_new_contribution_async_http_error(self, mocker):
+        mock_session = mocker.AsyncMock()
+        mock_response_cm = mocker.AsyncMock()
+        mock_response = mocker.AsyncMock()
+        mock_session.post.return_value = mock_response_cm
+        mock_response_cm.__aenter__.return_value = mock_response
+        # Mock HTTP error
+        mock_response.status = 400
+        mock_response.raise_for_status = mocker.AsyncMock(
+            side_effect=aiohttp.ClientResponseError(
+                request_info=mocker.MagicMock(),
+                history=(),
+                status=400,
+                message="Bad Request"
+            )
+        )
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.initialize_session = mocker.AsyncMock()
+        instance.session = mock_session
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        with pytest.raises(
+            Exception,
+            match="API returned error: 400 - Bad Request"
+        ):
+            await instance.post_new_contribution_async(contribution_data)
+        instance.logger.error.assert_called_once_with(
+            "❌ Async API HTTP error: API returned error: 400 - Bad Request"
+        )
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_post_new_contribution_async_timeout_error(self, mocker):
+        mock_session = mocker.AsyncMock()
+        mock_session.post.side_effect = asyncio.TimeoutError()
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.initialize_session = mocker.AsyncMock()
+        instance.session = mock_session
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        with pytest.raises(
+            Exception,
+            match="API request timed out."
+        ):
+            await instance.post_new_contribution_async(contribution_data)
+        instance.logger.error.assert_called_once_with(
+            "❌ Async API timeout error: API request timed out."
+        )
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_post_new_contribution_async_client_error(self, mocker):
+        mock_session = mocker.AsyncMock()
+        mock_session.post.side_effect = aiohttp.ClientError("Generic client error")
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.initialize_session = mocker.AsyncMock()
+        instance.session = mock_session
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        with pytest.raises(
+            Exception,
+            match="API request failed: Generic client error"
+        ):
+            await instance.post_new_contribution_async(contribution_data)
+        instance.logger.error.assert_called_once_with(
+            "❌ Async API client error: API request failed: Generic client error"
+        )
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_post_new_contribution_async_unexpected_error(self, mocker):
+        mock_session = mocker.AsyncMock()
+        mock_session.post.side_effect = ValueError("Unexpected value error")
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.initialize_session = mocker.AsyncMock()
+        instance.session = mock_session
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        with pytest.raises(
+            Exception,
+            match="Unexpected API error: Unexpected value error"
+        ):
+            await instance.post_new_contribution_async(contribution_data)
+        instance.logger.error.assert_called_once_with(
+            "❌ Async API unexpected error: Unexpected API error: Unexpected value error"
+        )
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_post_new_contribution_async_custom_base_url(self, mocker):
+        mock_session = mocker.AsyncMock()
+        mock_response_cm = mocker.AsyncMock()
+        mock_response = mocker.AsyncMock()
+        mock_session.post.return_value = mock_response_cm
+        mock_response_cm.__aenter__.return_value = mock_response
+        mock_response.status = 200
+        mock_response.raise_for_status = mocker.AsyncMock()
+        mock_response.json = mocker.AsyncMock(return_value={"success": True})
+        mocker.patch("aiohttp.ClientSession", return_value=mock_session)
+        # Patch the base URL
+        mocker.patch.object(
+            trackers.base,
+            "REWARDS_API_BASE_URL",
+            "http://test-api:8000/api",
+        )
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.initialize_session = mocker.AsyncMock()
+        instance.session = mock_session
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        await instance.post_new_contribution_async(contribution_data)
+        # Verify URL uses custom base
+        mock_session.post.assert_called_once_with(
+            "http://test-api:8000/api/addcontribution",
+            json=contribution_data,
+            headers={"Content-Type": "application/json"},
+            timeout=mocker.ANY
+        )
+
+    @pytest.mark.asyncio
+    async def test_base_baseasyncmentiontracker_post_new_contribution_async_session_initialization(self, mocker):
+        mock_session = mocker.AsyncMock()
+        mock_response_cm = mocker.AsyncMock()
+        mock_response = mocker.AsyncMock()
+        mock_session.post.return_value = mock_response_cm
+        mock_response_cm.__aenter__.return_value = mock_response
+        mock_response.status = 200
+        mock_response.raise_for_status = mocker.AsyncMock()
+        mock_response.json = mocker.AsyncMock(return_value={"success": True})
+        mock_session_class = mocker.patch("aiohttp.ClientSession", return_value=mock_session)
+        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
+        instance.logger = mocker.MagicMock()
+        contribution_data = {"username": "test_user", "platform": "Testplatform"}
+        # First call should create session
+        await instance.post_new_contribution_async(contribution_data)
+        mock_session_class.assert_called_once()
+        # Second call should use existing session
+        await instance.post_new_contribution_async(contribution_data)
+        mock_session_class.assert_called_once()  # Still only called once
+        assert mock_session.post.call_count == 2
+
+    # # shutdown
+    def test_reackers_base_baseasyncmentiontracker_shutdown_with_partially_initialized_task(
+        self, tracker
+    ):
+        """Test shutdown with a task that doesn't have cancel method."""
+
+        # Create a mock that doesn't have cancel() method
+        # Use a simple object without cancel attribute
+        class TaskWithoutCancel:
+            pass
+
+        tracker.async_task = TaskWithoutCancel()
+
+        # This should not raise an exception
+        with patch("builtins.print") as mock_print:
+            tracker.shutdown()
+
+            # Should still print shutdown message
+            mock_print.assert_called_once_with("Shutdown requested...")
+
     def test_reackers_base_baseasyncmentiontracker_shutdown_without_task(self, tracker):
         """Test shutdown when no async task is running."""
         # Ensure async_task is None
@@ -584,6 +954,7 @@ class TestBaseAsyncMentionTracker:
             # Verify task.cancel() was called each time
             assert mock_task.cancel.call_count == 3
 
+    # # start_async_task
     @patch("asyncio.get_event_loop")
     def test_reackers_base_baseasyncmentiontracker_start_async_task_normal_execution(
         self, mock_get_loop, tracker, mock_async_callback, mock_event_loop
@@ -904,172 +1275,3 @@ class TestBaseAsyncMentionTracker:
 
         # Verify async_task wasn't set
         assert not hasattr(tracker, "async_task") or tracker.async_task is None
-
-    # # shutdown
-    def test_reackers_base_baseasyncmentiontracker_shutdown_with_partially_initialized_task(
-        self, tracker
-    ):
-        """Test shutdown with a task that doesn't have cancel method."""
-
-        # Create a mock that doesn't have cancel() method
-        # Use a simple object without cancel attribute
-        class TaskWithoutCancel:
-            pass
-
-        tracker.async_task = TaskWithoutCancel()
-
-        # This should not raise an exception
-        with patch("builtins.print") as mock_print:
-            tracker.shutdown()
-
-            # Should still print shutdown message
-            mock_print.assert_called_once_with("Shutdown requested...")
-
-    # is_processed_async
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_is_processed_async_true(self, mocker):
-        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
-        mock_is_processed_orm = mocker.patch(
-            "trackers.models.Mention.objects.is_processed"
-        )
-        mock_is_processed_orm.return_value = True
-        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
-        result = await instance.is_processed_async("test_item_id")
-        assert result is True
-        mock_is_processed_orm.assert_called_once_with("test_item_id", "test_platform")
-
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_is_processed_async_false(self, mocker):
-        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
-        mock_is_processed_orm = mocker.patch(
-            "trackers.models.Mention.objects.is_processed"
-        )
-        mock_is_processed_orm.return_value = False
-        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
-        result = await instance.is_processed_async("test_item_id")
-        assert result is False
-        mock_is_processed_orm.assert_called_once_with("test_item_id", "test_platform")
-
-    # log_action_async
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_log_action_async_functionality(
-        self, mocker
-    ):
-        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
-        mocked_log = mocker.patch("trackers.base.BaseAsyncMentionTracker.log_action")
-        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
-        await instance.log_action_async("test_action", "test_details")
-        mocked_log.assert_called_once_with("test_action", "test_details")
-
-    # mark_processed_async
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_mark_processed_async_success(
-        self, mocker
-    ):
-        mocker.patch.object(BaseAsyncMentionTracker, "setup_logging")
-        mock_mark_processed_orm = mocker.AsyncMock(return_value=None)
-        mocker.patch(
-            "trackers.models.Mention.objects.mark_processed",
-            new=mock_mark_processed_orm,
-        )
-        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
-        test_data = {
-            "suggester": "test_user",
-            "subreddit": "test_subreddit",
-        }
-        await instance.mark_processed_async("test_item_id", test_data)
-        mock_mark_processed_orm.assert_called_once_with(
-            "test_item_id", "test_platform", test_data
-        )
-
-    # process_mention_async
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_process_mention_async_already_processed(
-        self, mocker
-    ):
-        mock_is_processed = mocker.patch.object(
-            BaseAsyncMentionTracker, "is_processed_async"
-        )
-        mock_is_processed.return_value = True
-        mock_callback, username = mocker.MagicMock(), mocker.MagicMock()
-        instance = BaseAsyncMentionTracker("test_platform", mock_callback)
-        result = await instance.process_mention_async("test_item_id", {}, username)
-        assert result is False
-        mock_callback.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_process_mention_async_success(
-        self, mocker
-    ):
-        mock_is_processed = mocker.patch.object(
-            BaseAsyncMentionTracker, "is_processed_async"
-        )
-        mock_is_processed.return_value = False
-        mock_prepare_contribution_data = mocker.patch.object(
-            BaseAsyncMentionTracker, "prepare_contribution_data"
-        )
-        mock_post_new_contribution = mocker.patch.object(
-            BaseAsyncMentionTracker, "post_new_contribution"
-        )
-        mock_mark_processed = mocker.AsyncMock(return_value=None)
-        mocker.patch.object(
-            BaseAsyncMentionTracker, "mark_processed_async", new=mock_mark_processed
-        )
-        mock_log_action = mocker.AsyncMock(return_value=None)
-        mocker.patch.object(
-            BaseAsyncMentionTracker, "log_action_async", new=mock_log_action
-        )
-        mock_logger = mocker.MagicMock()
-        mock_callback = mocker.MagicMock(return_value={"parsed": "data"})
-        instance = BaseAsyncMentionTracker("test_platform", mock_callback)
-        instance.logger = mock_logger
-        test_data = {"suggester": "test_user", "content": "content"}
-        username = "username"
-        result = await instance.process_mention_async(
-            "test_item_id", test_data, username
-        )
-        assert result is True
-        mock_callback.assert_called_once_with("content", "username")
-        mock_prepare_contribution_data.assert_called_once_with(
-            {"parsed": "data"}, test_data
-        )
-        mock_post_new_contribution.assert_called_once()
-        mock_mark_processed.assert_called_once_with("test_item_id", test_data)
-        mock_logger.info.assert_called_once_with("Processed mention from test_user")
-        mock_log_action.assert_called_once_with(
-            "mention_processed", "Item: test_item_id, Suggester: test_user"
-        )
-
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_process_mention_async_exception(
-        self, mocker
-    ):
-        mock_is_processed = mocker.patch.object(
-            BaseAsyncMentionTracker, "is_processed_async"
-        )
-        mock_is_processed.return_value = False
-        mock_logger = mocker.MagicMock()
-        mock_log_action = mocker.AsyncMock(return_value=None)
-        mocker.patch.object(
-            BaseAsyncMentionTracker, "log_action_async", new=mock_log_action
-        )
-        mock_callback = mocker.MagicMock(side_effect=Exception("Test error"))
-        instance = BaseAsyncMentionTracker("test_platform", mock_callback)
-        instance.logger = mock_logger
-        result = await instance.process_mention_async("test_item_id", {}, "username")
-        assert result is False
-        mock_logger.error.assert_called_once_with(
-            "Error processing mention test_item_id: Test error"
-        )
-        mock_log_action.assert_called_once_with(
-            "processing_error", "Item: test_item_id, Error: Test error"
-        )
-
-    # check_mentions_async
-    @pytest.mark.asyncio
-    async def test_base_baseasyncmentiontracker_check_mentions_async_not_implemented(
-        self,
-    ):
-        instance = BaseAsyncMentionTracker("test_platform", lambda x: None)
-        with pytest.raises(NotImplementedError):
-            await instance.check_mentions_async()

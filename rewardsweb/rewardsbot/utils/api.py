@@ -11,7 +11,7 @@ import logging
 
 import aiohttp
 
-from rewardsbot.config import BASE_URL
+from rewardsbot.config import BASE_URL 
 
 logger = logging.getLogger("discord.api")
 
