@@ -8,7 +8,7 @@ class TelegramUpdater(BaseUpdater):
     """Main class for retrieving and adding Telegram messages."""
 
     def add_reaction_to_message(self, url, reaction_name):
-        """Add reaction to message.
+        """Add reaction to Telegram message defined by `url`.
 
         NOTE: not implemented yet
 
