@@ -376,8 +376,9 @@ class TestUpdatersTelegramTelegramUpdater:
         instance = TelegramUpdater()
         instance.client = mock_client_class.return_value
         action_callback = mocker.MagicMock()
-        # Mock asyncio loop and cleanup
+        # Mock asyncio loop
         mock_loop = mocker.MagicMock()
+        mock_loop.is_closed.return_value = False  # Add this line
         mock_new_event_loop = mocker.patch(
             "asyncio.new_event_loop", return_value=mock_loop
         )
@@ -393,8 +394,7 @@ class TestUpdatersTelegramTelegramUpdater:
         mock_loop.run_until_complete.assert_called_once_with(
             action_callback("test_url", "Test reply")
         )
-        # Disconnect should not be called since _is_connected is False
-        mock_loop.run_until_complete.assert_called_once()
+        # loop.close() should be called since loop.is_closed() returns False
         mock_loop.close.assert_called_once()
         mock_logger.error.assert_not_called()
 
@@ -406,44 +406,31 @@ class TestUpdatersTelegramTelegramUpdater:
         instance = TelegramUpdater()
         instance.client = mock_client_class.return_value
         instance._is_connected = True  # Client is connected
-        # Create action_callback as AsyncMock that returns True
-        action_callback = mocker.AsyncMock(return_value=True)
-        # Mock asyncio and client disconnect
+
+        # Create a real async function for the callback
+        async def mock_action_callback(*args):
+            return True
+
+        # Mock asyncio loop
         mock_loop = mocker.MagicMock()
+        # Set the return value to True
+        mock_loop.run_until_complete.return_value = True
+        mock_loop.is_closed.return_value = False
         mock_new_event_loop = mocker.patch(
             "asyncio.new_event_loop", return_value=mock_loop
         )
         mocker.patch("asyncio.set_event_loop")
-        # Create disconnect as AsyncMock
-        mock_client_disconnect = mocker.AsyncMock()
-        instance.client.disconnect = mock_client_disconnect
         # Mock logger
         mock_logger = mocker.patch("updaters.telegram.logger")
         # Call the method
-        result = instance._process_action(action_callback, "test_url", "Test reply")
+        result = instance._process_action(
+            mock_action_callback, "test_url", "Test reply"
+        )
         # Assertions
-        assert result == mock_loop.run_until_complete.return_value
+        assert result is True
         mock_new_event_loop.assert_called_once()
-        # Check that run_until_complete was called twice:
-        # 1. For action_callback
-        # 2. For client.disconnect()
-        assert mock_loop.run_until_complete.call_count == 2
-        # Get all calls to run_until_complete
-        run_until_complete_calls = mock_loop.run_until_complete.call_args_list
-        # First call should be with action_callback result
-        # We can't check the exact coroutine object, but we can check it was called
-        # with a coroutine (the result of action_callback)
-        first_call_args = run_until_complete_calls[0][0]
-        assert len(first_call_args) == 1
-        # The first argument should be a coroutine from action_callback
-        assert asyncio.iscoroutine(first_call_args[0])
-        # Second call should be with client.disconnect() result
-        second_call_args = run_until_complete_calls[1][0]
-        assert len(second_call_args) == 1
-        # The first argument should be a coroutine from disconnect
-        assert asyncio.iscoroutine(second_call_args[0])
-        # Check that disconnect was called
-        mock_client_disconnect.assert_called_once()
+        # Check that run_until_complete was called only once
+        assert mock_loop.run_until_complete.call_count == 1
         mock_loop.close.assert_called_once()
         mock_logger.error.assert_not_called()
 
@@ -482,6 +469,7 @@ class TestUpdatersTelegramTelegramUpdater:
         # Mock asyncio with a loop that raises an exception
         mock_loop = mocker.MagicMock()
         mock_loop.run_until_complete.side_effect = Exception("Loop execution error")
+        mock_loop.is_closed.return_value = False  # Add this line
         mock_loop.close = mocker.MagicMock()
         mocker.patch("asyncio.new_event_loop", return_value=mock_loop)
         mocker.patch("asyncio.set_event_loop")
@@ -494,32 +482,48 @@ class TestUpdatersTelegramTelegramUpdater:
         mock_loop.run_until_complete.assert_called_once_with(
             action_callback("test_url", "Test reply")
         )
+        # Should still close the loop even on error
+        mock_loop.close.assert_called_once()
         mock_logger.error.assert_called_once_with(
             "Error raised for execution1: Loop execution error"
         )
 
     def test_updaters_telegram_telegramupdater_process_action_close_error(self, mocker):
+        """Test that exception in finally block doesn't override successful result."""
         # Mock the TelegramClient
         mock_client_class = mocker.patch("updaters.telegram.TelegramClient")
         instance = TelegramUpdater()
         instance.client = mock_client_class.return_value
-        instance._is_connected = True
-        action_callback = mocker.MagicMock()
-        action_callback.__name__ = "name1"
+
+        # Create a real async function for the callback
+        async def mock_action_callback(*args):
+            return True
+
+        # Mock asyncio loop that succeeds but has error on close
         mock_loop = mocker.MagicMock()
-        mock_loop.close.side_effect = Exception("Async error")
+        # Action succeeds
+        mock_loop.run_until_complete.return_value = True
+        mock_loop.is_closed.return_value = False
+        # Close fails
+        mock_loop.close.side_effect = Exception("Close error")
         mocker.patch("asyncio.new_event_loop", return_value=mock_loop)
         mocker.patch("asyncio.set_event_loop")
-        mock_client_disconnect = mocker.AsyncMock()
-        instance.client.disconnect = mock_client_disconnect
         # Mock logger
         mock_logger = mocker.patch("updaters.telegram.logger")
-        # Call the method
-        result = instance._process_action(action_callback, "test_url", "Test reply")
+        # Call the method - should return True even though close fails
+        result = instance._process_action(
+            mock_action_callback, "test_url", "Test reply"
+        )
         # Assertions
-        assert result is False
+        # The action succeeded, so result should be True despite close error
+        assert result is True
+        # Loop should have been attempted to close
         mock_loop.close.assert_called_once()
-        mock_logger.error.assert_called_once_with("Error raised for name1: Async error")
+        # Error during close is caught and logged as warning
+        mock_logger.warning.assert_called_once_with(
+            "Error closing event loop: Close error"
+        )
+        mock_logger.error.assert_not_called()  # No error from the action itself
 
     def test_updaters_telegram_telegramupdater_process_action_url_on_exception(
         self, mocker
@@ -528,25 +532,54 @@ class TestUpdatersTelegramTelegramUpdater:
         mock_client_class = mocker.patch("updaters.telegram.TelegramClient")
         instance = TelegramUpdater()
         instance.client = mock_client_class.return_value
-        mock_ensure_connected = mocker.AsyncMock()
-        instance._ensure_connected = mock_ensure_connected
         # Mock asyncio
         mock_loop = mocker.MagicMock()
+        mock_loop.run_until_complete.side_effect = ValueError("Invalid URL format")
+        mock_loop.is_closed.return_value = False  # Add this line
         mocker.patch("asyncio.new_event_loop", return_value=mock_loop)
         mocker.patch("asyncio.set_event_loop")
-        mock_loop.run_until_complete.side_effect = ValueError("Invalid URL format")
-        # Mock logger at module level
+        # Mock logger
         mock_logger = mocker.patch("updaters.telegram.logger")
-        # We need to patch the actual _add_reply_async method
-        # First, let's get the actual method
-        action_callback = mocker.MagicMock()
+
+        # Create action callback that will raise an exception
+        async def failing_action(url, text):
+            raise ValueError("Invalid URL format")
+
+        action_callback = failing_action
         action_callback.__name__ = "name2"
+        # Call the method
         result = instance._process_action(action_callback, "invalid_url", "Test reply")
         # Assertions
         assert result is False
         mock_logger.error.assert_called_once_with(
             "Error raised for name2: Invalid URL format"
         )
+        # Loop should still be closed
+        mock_loop.close.assert_called_once()
+
+    def test_updaters_telegram_telegramupdater_process_action_loop_already_closed(
+        self, mocker
+    ):
+        """Test when loop is already closed in finally block."""
+        # Mock the TelegramClient
+        mock_client_class = mocker.patch("updaters.telegram.TelegramClient")
+        instance = TelegramUpdater()
+        instance.client = mock_client_class.return_value
+        action_callback = mocker.MagicMock()
+        # Mock asyncio with a loop that is already closed
+        mock_loop = mocker.MagicMock()
+        mock_loop.is_closed.return_value = True  # Loop is already closed
+        mocker.patch("asyncio.new_event_loop", return_value=mock_loop)
+        mocker.patch("asyncio.set_event_loop")
+        # Mock logger
+        mock_logger = mocker.patch("updaters.telegram.logger")
+        # Call the method
+        result = instance._process_action(action_callback, "test_url", "Test reply")
+        # Assertions
+        assert result == mock_loop.run_until_complete.return_value
+        # Should not try to close an already closed loop
+        mock_loop.close.assert_not_called()
+        mock_logger.error.assert_not_called()
 
     # # add_reaction_to_message
     def test_updaters_telegram_telegramupdater_add_reaction_to_message_functionality(
