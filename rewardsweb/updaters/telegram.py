@@ -137,6 +137,7 @@ class TelegramUpdater(BaseUpdater):
         :return: True for success, False otherwise
         :rtype: bool
         """
+        loop = None
         try:
             # Create event loop for async operations
             loop = asyncio.new_event_loop()
@@ -144,19 +145,20 @@ class TelegramUpdater(BaseUpdater):
 
             # Run the async method
             result = loop.run_until_complete(action_callback(*args))
-
-            # Cleanup
-            if self._is_connected:
-                loop.run_until_complete(self.client.disconnect())
-                self._is_connected = False
-
-            loop.close()
-
             return result
 
         except Exception as e:
             logger.error(f"Error raised for {action_callback.__name__}: {e}")
             return False
+
+        finally:
+            # Always close the loop to free resources
+            if loop and not loop.is_closed():
+                try:
+                    loop.close()
+
+                except Exception as e:
+                    logger.warning(f"Error closing event loop: {e}")
 
     def add_reaction_to_message(self, url, reaction_name):
         """Add reaction to the Telegram message defined by `url`.
