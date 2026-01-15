@@ -57,7 +57,6 @@ class MockDiscordClientWrapper(IDiscordClientWrapper):
         self.user = mock.MagicMock()
         self.guilds = []
         self._event_handlers = {}
-
         # Create proper MagicMock objects for these methods
         self.get_guild = mock.MagicMock()
         self.get_channel = mock.MagicMock()
@@ -96,7 +95,6 @@ class TestIDiscordClientWrapper:
         """Test that IDiscordClientWrapper cannot be instantiated directly."""
         with pytest.raises(TypeError) as exc_info:
             IDiscordClientWrapper()
-
         assert "Can't instantiate abstract class" in str(exc_info.value)
 
     @pytest.mark.asyncio
@@ -144,9 +142,7 @@ class TestDiscordClientWrapper:
         intents = discord.Intents.default()
         intents.messages = True
         intents.message_content = True
-
         wrapper = DiscordClientWrapper(intents)
-
         assert wrapper._client is not None
         assert isinstance(wrapper._client, discord.Client)
 
@@ -155,9 +151,7 @@ class TestDiscordClientWrapper:
         # Use real Intents
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         assert isinstance(wrapper, IDiscordClientWrapper)
 
     @pytest.mark.asyncio
@@ -165,15 +159,11 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.start method."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # Mock the underlying client's start method
         wrapper._client.start = mock.AsyncMock()
-
         test_token = "test_token_123"
         await wrapper.start(test_token)
-
         wrapper._client.start.assert_called_once_with(test_token)
 
     @pytest.mark.asyncio
@@ -181,27 +171,20 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.close method."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # Mock the underlying client's close method
         wrapper._client.close = mock.AsyncMock()
-
         await wrapper.close()
-
         wrapper._client.close.assert_called_once()
 
     def test_trackers_discord_client_wrapper_is_ready(self):
         """Test DiscordClientWrapper.is_ready method."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # Test when ready
         wrapper._client.is_ready = mock.Mock(return_value=True)
         assert wrapper.is_ready() is True
-
         # Test when not ready
         wrapper._client.is_ready = mock.Mock(return_value=False)
         assert wrapper.is_ready() is False
@@ -210,13 +193,10 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.is_closed method."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # Test when closed
         wrapper._client.is_closed = mock.Mock(return_value=True)
         assert wrapper.is_closed() is True
-
         # Test when not closed
         wrapper._client.is_closed = mock.Mock(return_value=False)
         assert wrapper.is_closed() is False
@@ -225,15 +205,11 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.get_guild method."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         test_guild_id = 123456789012345678
         mock_guild = mock.MagicMock()
         wrapper._client.get_guild = mock.Mock(return_value=mock_guild)
-
         result = wrapper.get_guild(test_guild_id)
-
         wrapper._client.get_guild.assert_called_once_with(test_guild_id)
         assert result is mock_guild
 
@@ -241,14 +217,10 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.get_guild when guild not found."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         test_guild_id = 123456789012345678
         wrapper._client.get_guild = mock.Mock(return_value=None)
-
         result = wrapper.get_guild(test_guild_id)
-
         wrapper._client.get_guild.assert_called_once_with(test_guild_id)
         assert result is None
 
@@ -256,15 +228,11 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.get_channel method."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         test_channel_id = 123456789012345678
         mock_channel = mock.MagicMock()
         wrapper._client.get_channel = mock.Mock(return_value=mock_channel)
-
         result = wrapper.get_channel(test_channel_id)
-
         wrapper._client.get_channel.assert_called_once_with(test_channel_id)
         assert result is mock_channel
 
@@ -272,14 +240,10 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.get_channel when channel not found."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         test_channel_id = 123456789012345678
         wrapper._client.get_channel = mock.Mock(return_value=None)
-
         result = wrapper.get_channel(test_channel_id)
-
         wrapper._client.get_channel.assert_called_once_with(test_channel_id)
         assert result is None
 
@@ -287,9 +251,7 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.event decorator."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # Mock the client.event decorator
         mock_decorator = mock.MagicMock()
         mock_decorator.return_value = "decorated_function"
@@ -299,7 +261,6 @@ class TestDiscordClientWrapper:
             pass
 
         result = wrapper.event(test_function)
-
         mock_decorator.assert_called_once_with(test_function)
         assert result == "decorated_function"
 
@@ -307,9 +268,7 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.user property."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # The user property is read-only in discord.Client, so we test that it returns the same value
         assert wrapper.user is wrapper._client.user
 
@@ -317,9 +276,7 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.guilds property."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # The guilds property returns a SequenceProxy, so we test that they contain the same data
         # by converting to list and comparing
         assert list(wrapper.guilds) == list(wrapper._client.guilds)
@@ -328,28 +285,20 @@ class TestDiscordClientWrapper:
         """Test that DiscordClientWrapper implements all abstract methods."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # These should all exist and be callable
         assert hasattr(wrapper, "start")
         assert callable(wrapper.start)
-
         assert hasattr(wrapper, "close")
         assert callable(wrapper.close)
-
         assert hasattr(wrapper, "is_ready")
         assert callable(wrapper.is_ready)
-
         assert hasattr(wrapper, "is_closed")
         assert callable(wrapper.is_closed)
-
         assert hasattr(wrapper, "get_guild")
         assert callable(wrapper.get_guild)
-
         assert hasattr(wrapper, "get_channel")
         assert callable(wrapper.get_channel)
-
         assert hasattr(wrapper, "event")
         assert callable(wrapper.event)
 
@@ -358,17 +307,13 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.start with exception."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         test_token = "test_token_123"
         wrapper._client.start = mock.AsyncMock(
             side_effect=Exception("Connection failed")
         )
-
         with pytest.raises(Exception) as exc_info:
             await wrapper.start(test_token)
-
         assert "Connection failed" in str(exc_info.value)
         wrapper._client.start.assert_called_once_with(test_token)
 
@@ -377,14 +322,10 @@ class TestDiscordClientWrapper:
         """Test DiscordClientWrapper.close with exception."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         wrapper._client.close = mock.AsyncMock(side_effect=Exception("Close failed"))
-
         with pytest.raises(Exception) as exc_info:
             await wrapper.close()
-
         assert "Close failed" in str(exc_info.value)
         wrapper._client.close.assert_called_once()
 
@@ -392,21 +333,16 @@ class TestDiscordClientWrapper:
         """Test that DiscordClientWrapper properties match underlying client."""
         intents = discord.Intents.default()
         intents.messages = True
-
         wrapper = DiscordClientWrapper(intents)
-
         # Test user property consistency - both should return the same object
         assert wrapper.user is wrapper._client.user
-
         # Test guilds property consistency - they should contain the same guilds
         # (even though they're different SequenceProxy instances)
         assert list(wrapper.guilds) == list(wrapper._client.guilds)
-
         # Test is_ready method consistency
         wrapper._client.is_ready = mock.Mock(return_value=True)
         assert wrapper.is_ready() is True
         wrapper._client.is_ready.assert_called_once()
-
         # Test is_closed method consistency
         wrapper._client.is_closed = mock.Mock(return_value=False)
         assert wrapper.is_closed() is False
@@ -496,7 +432,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         assert instance.bot_user_id == 123456789012345678
         assert instance.token == "test_token"
         assert instance.tracked_guilds == guilds_collection
@@ -511,7 +446,6 @@ class TestDiscordTracker:
         instance = DiscordTracker(
             lambda x: None, discord_config, client_wrapper=mock_client_wrapper
         )
-
         assert instance.tracked_guilds == []
         assert instance.auto_discover_channels is True
 
@@ -520,7 +454,6 @@ class TestDiscordTracker:
     ):
         """Test initialization with default client wrapper."""
         instance = DiscordTracker(lambda x: None, discord_config, guilds_collection)
-
         assert instance.client is not None
         assert isinstance(instance.client, DiscordClientWrapper)
 
@@ -535,9 +468,7 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance._setup_events()
-
         # Verify event handlers were registered
         assert "on_ready" in mock_client_wrapper._event_handlers
         assert "on_message" in mock_client_wrapper._event_handlers
@@ -554,7 +485,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Track registered event handlers
         registered_handlers = {}
 
@@ -568,19 +498,15 @@ class TestDiscordTracker:
 
         # Patch the event decorator
         mock_client_wrapper.event = mock_event_decorator
-
         # Call the method
         instance._setup_events()
-
         # Verify handlers were registered
         assert len(registered_handlers) == 4
-
         # Check each handler
         assert "on_ready" in registered_handlers
         assert "on_message" in registered_handlers
         assert "on_guild_join" in registered_handlers
         assert "on_guild_remove" in registered_handlers
-
         # Verify they are coroutine functions
         assert registered_handlers["on_ready"]["is_coroutine"] is True
         assert registered_handlers["on_message"]["is_coroutine"] is True
@@ -598,7 +524,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Track registered event handlers
         registered_handlers = {}
 
@@ -607,21 +532,16 @@ class TestDiscordTracker:
             return func
 
         mock_client_wrapper.event = mock_event_decorator
-
         # Mock the handler method
         mock_handler = mocker.patch.object(
             instance, "_handle_on_ready", new_callable=mock.AsyncMock
         )
-
         # Call setup
         instance._setup_events()
-
         # Get the on_ready handler
         on_ready_handler = registered_handlers["on_ready"]
-
         # Call the handler to verify it calls _handle_on_ready
         await on_ready_handler()
-
         # Verify _handle_on_ready was called
         mock_handler.assert_called_once()
 
@@ -641,7 +561,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         registered_handlers = {}
 
         def mock_event_decorator(func):
@@ -649,21 +568,16 @@ class TestDiscordTracker:
             return func
 
         mock_client_wrapper.event = mock_event_decorator
-
         # Mock the handler method
         mock_handler = mocker.patch.object(
             instance, "_handle_on_message", new_callable=mock.AsyncMock
         )
-
         # Call setup
         instance._setup_events()
-
         # Get the on_message handler
         on_message_handler = registered_handlers["on_message"]
-
         # Call the handler with a mock message
         await on_message_handler(mock_message)
-
         # Verify _handle_on_message was called with the message
         mock_handler.assert_called_once_with(mock_message)
 
@@ -678,7 +592,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         registered_handlers = {}
 
         def mock_event_decorator(func):
@@ -686,21 +599,16 @@ class TestDiscordTracker:
             return func
 
         mock_client_wrapper.event = mock_event_decorator
-
         # Mock the handler method
         mock_handler = mocker.patch.object(
             instance, "_handle_on_guild_join", new_callable=mock.AsyncMock
         )
-
         # Call setup
         instance._setup_events()
-
         # Get the on_guild_join handler
         on_guild_join_handler = registered_handlers["on_guild_join"]
-
         # Call the handler with a mock guild
         await on_guild_join_handler(mock_guild)
-
         # Verify _handle_on_guild_join was called with the guild
         mock_handler.assert_called_once_with(mock_guild)
 
@@ -715,7 +623,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         registered_handlers = {}
 
         def mock_event_decorator(func):
@@ -723,21 +630,16 @@ class TestDiscordTracker:
             return func
 
         mock_client_wrapper.event = mock_event_decorator
-
         # Mock the handler method
         mock_handler = mocker.patch.object(
             instance, "_handle_on_guild_remove", new_callable=mock.AsyncMock
         )
-
         # Call setup
         instance._setup_events()
-
         # Get the on_guild_remove handler
         on_guild_remove_handler = registered_handlers["on_guild_remove"]
-
         # Call the handler with a mock guild
         await on_guild_remove_handler(mock_guild)
-
         # Verify _handle_on_guild_remove was called with the guild
         mock_handler.assert_called_once_with(mock_guild)
 
@@ -751,7 +653,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         registered_handlers = {}
 
         def mock_event_decorator(func):
@@ -759,21 +660,16 @@ class TestDiscordTracker:
             return func
 
         mock_client_wrapper.event = mock_event_decorator
-
         # Call setup
         instance._setup_events()
-
         # Get the on_ready handler
         on_ready_handler = registered_handlers["on_ready"]
-
         # Check that the closure has access to instance variables
         # by inspecting the closure's __closure__ attribute
         assert on_ready_handler.__closure__ is not None
-
         # The closure should have a reference to 'self' (the instance)
         # This is a bit implementation-specific, but we can check
         cell_contents = [cell.cell_contents for cell in on_ready_handler.__closure__]
-
         # One of the cells should be our instance
         assert instance in cell_contents
 
@@ -788,7 +684,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock dependencies
         instance.logger = mock.MagicMock()
         mock_discover = mock.AsyncMock()
@@ -798,7 +693,6 @@ class TestDiscordTracker:
             new_callable=mock.AsyncMock,
         )
         instance.log_action_async = mock_log_action
-
         # Setup client state - create a proper mock with name attribute
         mock_user = mock.MagicMock()
         mock_user.name = "TestBot"
@@ -806,13 +700,10 @@ class TestDiscordTracker:
         mock_user.__str__ = mock.Mock(return_value="TestBot")
         mock_client_wrapper.user = mock_user
         mock_client_wrapper.guilds = [mock.MagicMock(), mock.MagicMock()]
-
         # Setup tracking state
         instance.guild_channels = {111111111111111111: [123456789012345678]}
         instance.all_tracked_channels = {123456789012345678}
-
         await instance._handle_on_ready()
-
         # Verify behavior - check that the calls were made with the expected content
         # Get the actual string arguments that were passed to logger.info
         logged_messages = []
@@ -820,7 +711,6 @@ class TestDiscordTracker:
             # Extract the first argument (the message string)
             if call.args:
                 logged_messages.append(str(call.args[0]))
-
         # Check if our expected messages are in the logged messages
         assert any(
             "Discord bot logged in as" in msg and "TestBot" in msg
@@ -852,12 +742,9 @@ class TestDiscordTracker:
             client_wrapper=mock_client_wrapper,
         )
         instance.log_action_async = mock_log_action
-
         mock_handle = mock.AsyncMock()
         instance._handle_new_message = mock_handle
-
         await instance._handle_on_message(mock_message)
-
         mock_handle.assert_called_once_with(mock_message)
 
     # # _handle_on_guild_join
@@ -877,16 +764,12 @@ class TestDiscordTracker:
             client_wrapper=mock_client_wrapper,
         )
         instance.log_action_async = mock_log_action
-
         instance.logger = mock.MagicMock()
         mock_discover = mock.AsyncMock()
         instance._discover_guild_channels = mock_discover
-
         mock_guild.name = "New Guild"
         mock_guild.id = 333333333333333333
-
         await instance._handle_on_guild_join(mock_guild)
-
         instance.logger.info.assert_called_once_with(
             "Joined new guild: New Guild (ID: 333333333333333333)"
         )
@@ -911,18 +794,13 @@ class TestDiscordTracker:
             client_wrapper=mock_client_wrapper,
         )
         instance.log_action_async = mock_log_action
-
         instance.logger = mock.MagicMock()
-
         # Add guild to tracking
         instance.guild_channels = {mock_guild.id: [123456789012345678]}
         instance._update_all_tracked_channels()
-
         mock_guild.name = "Old Guild"
         mock_guild.id = 333333333333333333
-
         await instance._handle_on_guild_remove(mock_guild)
-
         instance.logger.info.assert_called_once_with(
             "Left guild: Old Guild (ID: 333333333333333333)"
         )
@@ -942,18 +820,14 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Setup tracking state
         instance.guild_channels = {
             111111111111111111: [123456789012345678],
             222222222222222222: [234567890123456789],
         }
         instance._update_all_tracked_channels()
-
         initial_channel_count = len(instance.all_tracked_channels)
-
         instance._remove_guild_from_tracking(111111111111111111)
-
         # Verify guild was removed
         assert 111111111111111111 not in instance.guild_channels
         assert 222222222222222222 in instance.guild_channels
@@ -969,17 +843,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Setup tracking state
         instance.guild_channels = {111111111111111111: [123456789012345678]}
         instance._update_all_tracked_channels()
-
         initial_guild_count = len(instance.guild_channels)
         initial_channel_count = len(instance.all_tracked_channels)
-
         # Remove guild that's not in tracking
         instance._remove_guild_from_tracking(999999999999999999)
-
         # Verify no changes
         assert len(instance.guild_channels) == initial_guild_count
         assert len(instance.all_tracked_channels) == initial_channel_count
@@ -994,7 +864,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock guild retrieval
         mock_guild1 = mock.MagicMock()
 
@@ -1005,9 +874,7 @@ class TestDiscordTracker:
             return None
 
         mock_client_wrapper.get_guild.side_effect = get_guild_side_effect
-
         guilds = instance._get_guilds_to_process()
-
         # Should only include guilds that were found
         assert len(guilds) == 1
         assert mock_guild1 in guilds
@@ -1019,14 +886,11 @@ class TestDiscordTracker:
         instance = DiscordTracker(
             lambda x: None, discord_config, client_wrapper=mock_client_wrapper
         )
-
         # Mock client guilds
         mock_guild1 = mock.MagicMock()
         mock_guild2 = mock.MagicMock()
         mock_client_wrapper.guilds = [mock_guild1, mock_guild2]
-
         guilds = instance._get_guilds_to_process()
-
         # Should return all client guilds
         assert guilds == [mock_guild1, mock_guild2]
 
@@ -1041,12 +905,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.id = 888888888888888888  # In included_channels
-
         result = instance._is_channel_trackable(mock_channel, 111111111111111111)
-
         # Should return True immediately for manually included channels
         assert result is True
 
@@ -1060,12 +921,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.id = 999999999999999999  # In excluded_channels
-
         result = instance._is_channel_trackable(mock_channel, 111111111111111111)
-
         # Should return False for manually excluded channels
         assert result is False
 
@@ -1079,13 +937,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.id = 123456789012345678
         mock_channel.type = discord.ChannelType.voice  # In excluded_channel_types
-
         result = instance._is_channel_trackable(mock_channel, 111111111111111111)
-
         # Should return False for excluded channel types
         assert result is False
 
@@ -1099,12 +954,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.id = 123456789012345678
         mock_channel.type = discord.ChannelType.text
         mock_channel.permissions_for = mock.MagicMock()
-
         # Mock bot member exists but no permissions
         mock_bot_member = mock.MagicMock()
         mock_permissions = mock.MagicMock()
@@ -1113,9 +966,7 @@ class TestDiscordTracker:
         mock_channel.permissions_for.return_value = mock_permissions
         mock_channel.guild.get_member.return_value = mock_bot_member
         mock_client_wrapper.user.id = 123456789012345678
-
         result = instance._is_channel_trackable(mock_channel, 111111111111111111)
-
         # Should return False when no read permissions
         assert result is False
         mock_channel.permissions_for.assert_called_once_with(mock_bot_member)
@@ -1130,18 +981,14 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.id = 123456789012345678
         mock_channel.type = discord.ChannelType.text
         mock_channel.permissions_for = mock.MagicMock()
-
         # Mock bot member not found
         mock_channel.guild.get_member.return_value = None
         mock_client_wrapper.user.id = 123456789012345678
-
         result = instance._is_channel_trackable(mock_channel, 111111111111111111)
-
         # Should return False when bot member not found
         assert result is False
 
@@ -1155,16 +1002,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.id = 123456789012345678
         mock_channel.type = discord.ChannelType.text
         mock_channel.permissions_for = mock.MagicMock(
             side_effect=Exception("Permission error")
         )
-
         result = instance._is_channel_trackable(mock_channel, 111111111111111111)
-
         # Should return False on exception
         assert result is False
 
@@ -1178,15 +1022,12 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.id = 123456789012345678
         mock_channel.type = discord.ChannelType.text
         # Remove permissions_for method
         del mock_channel.permissions_for
-
         result = instance._is_channel_trackable(mock_channel, 111111111111111111)
-
         # Should return True for channels without permission checks
         assert result is True
 
@@ -1200,10 +1041,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_channel = mock.MagicMock()
         mock_channel.permissions_for = mock.MagicMock()
-
         # Mock bot member with permissions
         mock_bot_member = mock.MagicMock()
         mock_permissions = mock.MagicMock()
@@ -1212,9 +1051,7 @@ class TestDiscordTracker:
         mock_channel.permissions_for.return_value = mock_permissions
         mock_channel.guild.get_member.return_value = mock_bot_member
         mock_client_wrapper.user.id = 123456789012345678
-
         result = instance._has_channel_permission(mock_channel)
-
         assert result is True
         mock_channel.permissions_for.assert_called_once_with(mock_bot_member)
 
@@ -1229,11 +1066,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.author.bot = True
-
         result = instance._should_process_message(mock_message)
-
         assert result is False
 
     def test_trackers_discord_should_process_message_direct_message(
@@ -1246,11 +1080,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.guild = None  # Direct message
-
         result = instance._should_process_message(mock_message)
-
         assert result is False
 
     def test_trackers_discord_should_process_message_untracked_guild(
@@ -1263,11 +1094,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.guild.id = 999999999999999999  # Not in tracked_guilds
-
         result = instance._should_process_message(mock_message)
-
         assert result is False
 
     def test_trackers_discord_should_process_message_untracked_channel(
@@ -1280,11 +1108,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.all_tracked_channels = {999999999999999999}  # Different channel
-
         result = instance._should_process_message(mock_message)
-
         assert result is False
 
     def test_trackers_discord_should_process_message_no_mention(
@@ -1297,13 +1122,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.all_tracked_channels = {mock_message.channel.id}
         mock_message.content = "Hello everyone"  # No mention
         mock_message.mentions = []
-
         result = instance._should_process_message(mock_message)
-
         assert result is False
 
     def test_trackers_discord_should_process_message_success(
@@ -1316,11 +1138,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.all_tracked_channels = {mock_message.channel.id}
-
         result = instance._should_process_message(mock_message)
-
         assert result is True
 
     def test_trackers_discord_is_bot_mentioned_user_mention(
@@ -1333,14 +1152,11 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_user = mock.MagicMock()
         mock_user.id = 123456789012345678
         mock_message.mentions = [mock_user]
         mock_message.content = "Hello"
-
         result = instance._is_bot_mentioned(mock_message)
-
         assert result is True
 
     def test_trackers_discord_is_bot_mentioned_string_mention(
@@ -1353,12 +1169,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.mentions = []
         mock_message.content = "Hello <@123456789012345678>"
-
         result = instance._is_bot_mentioned(mock_message)
-
         assert result is True
 
     def test_trackers_discord_is_bot_mentioned_no_mention(
@@ -1371,12 +1184,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.mentions = []
         mock_message.content = "Hello everyone"
-
         result = instance._is_bot_mentioned(mock_message)
-
         assert result is False
 
     @pytest.mark.asyncio
@@ -1400,10 +1210,8 @@ class TestDiscordTracker:
             client_wrapper=mock_client_wrapper,
         )
         instance.log_action_async = mock_log_action
-
         instance.logger = mock.MagicMock()
         instance.all_tracked_channels = {mock_message.channel.id}
-
         # Mock dependencies
         mock_extract = mock.AsyncMock(return_value={})
         instance.extract_mention_data = mock_extract
@@ -1411,9 +1219,7 @@ class TestDiscordTracker:
         instance.process_mention_async = mock_process
         mock_is_processed = mock.AsyncMock(return_value=False)
         instance.is_processed_async = mock_is_processed
-
         await instance._handle_new_message(mock_message)
-
         mock_extract.assert_called_once_with(mock_message)
         mock_process.assert_called_once_with(
             (
@@ -1447,22 +1253,17 @@ class TestDiscordTracker:
             client_wrapper=mock_client_wrapper,
         )
         instance.log_action_async = mock_log_action
-
         instance.all_tracked_channels = {mock_message.channel.id}
-
         # Mock message already processed
         message_id = f"discord_{mock_message.guild.id}_{mock_message.channel.id}_{mock_message.id}"
         instance.processed_messages = {message_id}
-
         mock_extract = mock.AsyncMock()
         instance.extract_mention_data = mock_extract
         mock_process = mock.AsyncMock()
         instance.process_mention_async = mock_process
         mock_is_processed = mock.AsyncMock(return_value=True)
         instance.is_processed_async = mock_is_processed
-
         await instance._handle_new_message(mock_message)
-
         mock_extract.assert_not_called()
         mock_process.assert_not_called()
 
@@ -1486,9 +1287,7 @@ class TestDiscordTracker:
             client_wrapper=mock_client_wrapper,
         )
         instance.log_action_async = mock_log_action
-
         instance.all_tracked_channels = {mock_message.channel.id}
-
         # Mock dependencies
         mock_extract = mock.AsyncMock(return_value={})
         instance.extract_mention_data = mock_extract
@@ -1496,9 +1295,7 @@ class TestDiscordTracker:
         instance.process_mention_async = mock_process
         mock_is_processed = mock.AsyncMock(return_value=False)
         instance.is_processed_async = mock_is_processed
-
         await instance._handle_new_message(mock_message)
-
         mock_extract.assert_called_once()
         mock_process.assert_called_once()
         assert len(instance.processed_messages) == 0
@@ -1525,7 +1322,6 @@ class TestDiscordTracker:
             client_wrapper=mock_client_wrapper,
         )
         instance.log_action_async = mock_log_action
-
         # Create replied message
         mock_replied = mock.MagicMock()
         mock_replied.jump_url = (
@@ -1536,18 +1332,17 @@ class TestDiscordTracker:
         mock_replied.author.name = "replied_user"
         mock_replied.author.display_name = "Replied User"
         mock_replied.content = "This is the replied message content."
-
         mock_message.reference = mock.MagicMock()
         mock_message.reference.resolved = mock_replied
-
+        mock_message.created_at = datetime(2026, 1, 15, 2, 2, 2)
         result = await instance.extract_mention_data(mock_message)
-
         assert result["suggester"] == mock_message.author.display_name
         assert result["contributor"] == "Replied User"
         assert result["contribution_url"] == mock_replied.jump_url
         assert result["discord_guild"] == "Test Guild"
         assert result["discord_channel"] == "test-channel"
         assert result["contribution"] == "This is the replied message content."
+        assert result["timestamp"] == 1768442522
 
     @pytest.mark.asyncio
     async def test_trackers_discord_extract_mention_data_no_reply(
@@ -1560,12 +1355,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.reference = None
         mock_message.content = "This is a standalone message."
-
         result = await instance.extract_mention_data(mock_message)
-
         assert result["suggester"] == mock_message.author.display_name
         assert result["contributor"] == mock_message.author.display_name
         assert result["contribution_url"] == mock_message.jump_url
@@ -1582,23 +1374,18 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Create replied message without jump_url
         mock_replied = mock.MagicMock()
         mock_replied.author.id = 555555555555555555
         mock_replied.author.name = "replied_user"
         mock_replied.author.display_name = "Replied User"
         mock_replied.content = "This is the replied message."
-
         # Remove jump_url attribute
         del mock_replied.jump_url
-
         mock_message.reference = mock.MagicMock()
         mock_message.reference.resolved = mock_replied
         mock_message.content = "This is the original message."
-
         result = await instance.extract_mention_data(mock_message)
-
         # Should fall back to current message URL
         assert result["contribution_url"] == mock_message.jump_url
         assert result["contributor"] == mock_message.author.display_name
@@ -1615,12 +1402,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.content = None
         mock_message.reference = None
-
         result = await instance.extract_mention_data(mock_message)
-
         assert result["content"] == ""
         assert result["contribution"] == ""
 
@@ -1635,12 +1419,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Set recent last check
         instance.last_channel_check[123456789012345678] = datetime.now()
-
         result = instance._is_rate_limited(123456789012345678)
-
         assert result is True
 
     def test_trackers_discord_is_rate_limited_false(
@@ -1653,14 +1434,11 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Set old last check
         instance.last_channel_check[123456789012345678] = datetime.now() - timedelta(
             seconds=10
         )
-
         result = instance._is_rate_limited(123456789012345678)
-
         assert result is False
 
     def test_trackers_discord_is_rate_limited_no_previous_check(
@@ -1673,9 +1451,7 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         result = instance._is_rate_limited(123456789012345678)
-
         assert result is False
 
     @pytest.mark.asyncio
@@ -1689,14 +1465,11 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Set rate limited
         instance.last_channel_check[123456789012345678] = datetime.now()
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == 0
 
     # Historical message processing tests
@@ -1711,11 +1484,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock channel history
         mock_channel = mock.MagicMock()
         mock_channel.history.return_value.__aiter__.return_value = [mock_message]
-
         # Mock dependencies
         mock_extract = mock.AsyncMock(return_value={})
         instance.extract_mention_data = mock_extract
@@ -1723,11 +1494,9 @@ class TestDiscordTracker:
         instance.process_mention_async = mock_process
         mock_is_processed = mock.AsyncMock(return_value=False)
         instance.is_processed_async = mock_is_processed
-
         result = await instance._process_channel_messages(
             mock_channel, 111111111111111111
         )
-
         assert result == 1
         mock_extract.assert_called_once_with(mock_message)
         mock_process.assert_called_once_with(
@@ -1747,17 +1516,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.author.bot = True
-
         # Mock channel history
         mock_channel = mock.MagicMock()
         mock_channel.history.return_value.__aiter__.return_value = [mock_message]
-
         result = await instance._process_channel_messages(
             mock_channel, 111111111111111111
         )
-
         assert result == 0  # Bot messages should be skipped
 
     @pytest.mark.asyncio
@@ -1771,18 +1536,14 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_message.content = "Hello everyone"  # No mention
         mock_message.mentions = []
-
         # Mock channel history
         mock_channel = mock.MagicMock()
         mock_channel.history.return_value.__aiter__.return_value = [mock_message]
-
         result = await instance._process_channel_messages(
             mock_channel, 111111111111111111
         )
-
         assert result == 0  # Messages without mentions should be skipped
 
     @pytest.mark.asyncio
@@ -1796,22 +1557,17 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock channel history
         mock_channel = mock.MagicMock()
         mock_channel.history.return_value.__aiter__.return_value = [mock_message]
-
         # Mock message already processed
         message_id = f"discord_111111111111111111_{mock_channel.id}_{mock_message.id}"
         instance.processed_messages = {message_id}
-
         mock_is_processed = mock.AsyncMock(return_value=True)
         instance.is_processed_async = mock_is_processed
-
         result = await instance._process_channel_messages(
             mock_channel, 111111111111111111
         )
-
         assert result == 0  # Already processed messages should be skipped
 
     @pytest.mark.asyncio
@@ -1824,11 +1580,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock channel history
         mock_channel = mock.MagicMock()
         mock_channel.history.return_value.__aiter__.return_value = [mock_message]
-
         # Mock dependencies
         mock_extract = mock.AsyncMock(return_value={})
         instance.extract_mention_data = mock_extract
@@ -1836,11 +1590,9 @@ class TestDiscordTracker:
         instance.process_mention_async = mock_process
         mock_is_processed = mock.AsyncMock(return_value=False)
         instance.is_processed_async = mock_is_processed
-
         result = await instance._process_channel_messages(
             mock_channel, 111111111111111111
         )
-
         assert result == 0
 
     # HTTP Exception handling tests
@@ -1855,16 +1607,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_exception = mock.MagicMock()
         mock_exception.status = 429
         mock_exception.retry_after = 2.5
-
         with mock.patch("asyncio.sleep") as mock_sleep:
             result = await instance._handle_http_exception(
                 mock_exception, 123456789012345678
             )
-
         assert result == 0
         mock_sleep.assert_called_once_with(2.5)
 
@@ -1879,17 +1628,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         mock_exception = mock.MagicMock()
         mock_exception.status = 500
         mock_exception.retry_after = None
-
         result = await instance._handle_http_exception(
             mock_exception, 123456789012345678
         )
-
         assert result == 0
         instance.logger.error.assert_called_once()
 
@@ -1905,17 +1650,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Add channel to tracking first
         instance.guild_channels = {111111111111111111: [123456789012345678]}
         instance._update_all_tracked_channels()
-
         result = await instance._handle_forbidden_exception(
             123456789012345678, 111111111111111111
         )
-
         assert result == 0
         instance.logger.warning.assert_called_once()
         # Channel should be removed from tracking
@@ -1934,17 +1675,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Setup tracking state
         instance.guild_channels = {
             111111111111111111: [123456789012345678, 234567890123456789]
         }
         instance._update_all_tracked_channels()
-
         initial_channel_count = len(instance.all_tracked_channels)
-
         instance._remove_channel_from_tracking(123456789012345678, 111111111111111111)
-
         # Verify channel was removed
         assert 123456789012345678 not in instance.guild_channels[111111111111111111]
         assert 234567890123456789 in instance.guild_channels[111111111111111111]
@@ -1960,16 +1697,12 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Setup tracking state
         instance.guild_channels = {111111111111111111: [123456789012345678]}
         instance._update_all_tracked_channels()
-
         initial_channel_count = len(instance.all_tracked_channels)
-
         # Remove channel that's not in tracking
         instance._remove_channel_from_tracking(999999999999999999, 111111111111111111)
-
         # Verify no changes
         assert len(instance.guild_channels[111111111111111111]) == 1
         assert len(instance.all_tracked_channels) == initial_channel_count
@@ -1984,16 +1717,12 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Setup tracking state with different guild
         instance.guild_channels = {222222222222222222: [123456789012345678]}
         instance._update_all_tracked_channels()
-
         initial_channel_count = len(instance.all_tracked_channels)
-
         # Remove channel from guild that's not in tracking
         instance._remove_channel_from_tracking(123456789012345678, 111111111111111111)
-
         # Verify no changes
         assert len(instance.guild_channels[222222222222222222]) == 1
         assert len(instance.all_tracked_channels) == initial_channel_count
@@ -2010,14 +1739,11 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_check = mock.AsyncMock(return_value=3)
         instance._check_channel_history = mock_check
-
         result = await instance._check_channel_with_semaphore(
             123456789012345678, 111111111111111111
         )
-
         assert result == 3
         mock_check.assert_called_once_with(123456789012345678, 111111111111111111)
 
@@ -2032,11 +1758,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_client_wrapper.ready = False
-
         result = await instance.check_mentions_async()
-
         assert result == 0
 
     @pytest.mark.asyncio
@@ -2050,9 +1773,7 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_client_wrapper.ready = True
-
         # Setup tracking state
         instance.guild_channels = {
             111111111111111111: [123456789012345678, 234567890123456789],
@@ -2064,9 +1785,7 @@ class TestDiscordTracker:
             return 1  # Each channel finds 1 mention
 
         instance._check_channel_with_semaphore = mock_check_with_semaphore
-
         result = await instance.check_mentions_async()
-
         # Should process 3 channels, each returning 1 mention
         assert result == 3
 
@@ -2081,10 +1800,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
         mock_client_wrapper.ready = True
-
         # Setup tracking state
         instance.guild_channels = {
             111111111111111111: [123456789012345678, 234567890123456789]
@@ -2098,9 +1815,7 @@ class TestDiscordTracker:
                 raise Exception("Test error")
 
         instance._check_channel_with_semaphore = mock_check_with_semaphore
-
         result = await instance.check_mentions_async()
-
         # Should only count successful results (2), log the error
         assert result == 2
         instance.logger.error.assert_called_once()
@@ -2116,12 +1831,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         results = [2, 3, 1, 0]  # Mentions from different channels
         total_mentions = instance._process_check_results(results)
-
         assert total_mentions == 6
         instance.logger.error.assert_not_called()
 
@@ -2135,12 +1847,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         results = [2, Exception("Test error 1"), 1, Exception("Test error 2")]
         total_mentions = instance._process_check_results(results)
-
         assert total_mentions == 3  # Only count successful results
         assert instance.logger.error.call_count == 2  # Log each exception
 
@@ -2155,12 +1864,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         now = datetime.now()
         last_discovery = now - timedelta(seconds=400)  # Over interval
-
         result = instance._should_run_channel_discovery(now, last_discovery)
-
         assert result is True
 
     def test_trackers_discord_should_run_channel_discovery_false(
@@ -2173,12 +1879,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         now = datetime.now()
         last_discovery = now - timedelta(seconds=100)  # Under interval
-
         result = instance._should_run_channel_discovery(now, last_discovery)
-
         assert result is False
 
     def test_trackers_discord_should_run_historical_check_true(
@@ -2191,13 +1894,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         now = datetime.now()
         last_check = now - timedelta(seconds=400)  # Over interval
         interval = 300
-
         result = instance._should_run_historical_check(now, last_check, interval)
-
         assert result is True
 
     def test_trackers_discord_should_run_historical_check_false(
@@ -2210,13 +1910,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         now = datetime.now()
         last_check = now - timedelta(seconds=100)  # Under interval
         interval = 300
-
         result = instance._should_run_historical_check(now, last_check, interval)
-
         assert result is False
 
     @pytest.mark.asyncio
@@ -2230,13 +1927,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
         mock_discover = mock.AsyncMock()
         instance._discover_all_guild_channels = mock_discover
-
         await instance._run_channel_discovery()
-
         instance.logger.info.assert_called_once_with(
             "Running periodic channel discovery"
         )
@@ -2253,13 +1947,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
         mock_check = mock.AsyncMock(return_value=5)
         instance.check_mentions_async = mock_check
-
         await instance._run_historical_check()
-
         instance.logger.info.assert_any_call("Running periodic historical check")
         instance.logger.info.assert_any_call("Found 5 new mentions in historical check")
         mock_check.assert_called_once()
@@ -2275,13 +1966,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
         mock_check = mock.AsyncMock(return_value=0)
         instance.check_mentions_async = mock_check
-
         await instance._run_historical_check()
-
         instance.logger.info.assert_called_once_with(
             "Running periodic historical check"
         )
@@ -2294,27 +1982,22 @@ class TestDiscordTracker:
         self, discord_config, guilds_collection, mock_client_wrapper, mocker
     ):
         """Test _async_interruptible_sleep sleeps the full duration when no exit conditions occur."""
-
         instance = DiscordTracker(
             lambda x: None,
             discord_config,
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # No exit interruption
         instance.exit_signal = False
         mock_client_wrapper.is_closed = lambda: False
-
         sleep_calls = []
 
         async def fake_sleep(s):
             sleep_calls.append(s)
 
         mocker.patch("asyncio.sleep", side_effect=fake_sleep)
-
         await instance._async_interruptible_sleep(seconds=5, step=1)
-
         # Should sleep 5 times with step=1
         assert sleep_calls == [1, 1, 1, 1, 1]
 
@@ -2323,17 +2006,14 @@ class TestDiscordTracker:
         self, discord_config, guilds_collection, mock_client_wrapper, mocker
     ):
         """Test _async_interruptible_sleep stops early when exit_signal becomes True."""
-
         instance = DiscordTracker(
             lambda x: None,
             discord_config,
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.exit_signal = False
         mock_client_wrapper.is_closed = lambda: False
-
         sleep_calls = []
 
         async def fake_sleep(s):
@@ -2341,9 +2021,7 @@ class TestDiscordTracker:
             instance.exit_signal = True  # Trigger exit after first sleep
 
         mocker.patch("asyncio.sleep", side_effect=fake_sleep)
-
         await instance._async_interruptible_sleep(seconds=10, step=1)
-
         # Should sleep only once because exit_signal was set after first chunk
         assert sleep_calls == [1]
 
@@ -2352,20 +2030,16 @@ class TestDiscordTracker:
         self, discord_config, guilds_collection, mock_client_wrapper, mocker
     ):
         """Test _async_interruptible_sleep stops early when the Discord client closes."""
-
         instance = DiscordTracker(
             lambda x: None,
             discord_config,
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.exit_signal = False
-
         # Client starts open, closes after one iteration
         mock_client_wrapper.closed = False
         mock_client_wrapper.is_closed = lambda: mock_client_wrapper.closed
-
         sleep_calls = []
 
         async def fake_sleep(s):
@@ -2373,9 +2047,7 @@ class TestDiscordTracker:
             mock_client_wrapper.closed = True  # Close client after first sleep
 
         mocker.patch("asyncio.sleep", side_effect=fake_sleep)
-
         await instance._async_interruptible_sleep(seconds=10, step=1)
-
         # Only one chunk should be slept because client closes after first
         assert sleep_calls == [1]
 
@@ -2391,12 +2063,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         now = datetime.now()
         last_discovery = now - timedelta(seconds=400)
         last_check = now - timedelta(seconds=400)
         interval = 300
-
         mocked_discovery = mocker.patch(
             "trackers.discord.DiscordTracker._should_run_channel_discovery",
             return_value=False,
@@ -2430,7 +2100,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         now = datetime.now()
         last_discovery = now - timedelta(seconds=400)
         last_check = now - timedelta(seconds=400)
@@ -2457,7 +2126,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock client to close after first iteration
         mock_client_wrapper.closed = False
         mocked_discovery = mocker.patch(
@@ -2473,12 +2141,10 @@ class TestDiscordTracker:
             mock_client_wrapper.closed = True
 
         mock_client_wrapper.is_closed = lambda: mock_client_wrapper.closed
-
         with mock.patch.object(
             instance, "_async_interruptible_sleep", side_effect=sleep_side_effect
         ) as mock_sleep:
             await instance._run_main_loop(300)
-
         # Verify our async sleep helper was called with the expected interval
         mock_sleep.assert_called_once_with(10)
         mocked_discovery.assert_called_once()
@@ -2494,7 +2160,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock client to close after first iteration
         mock_client_wrapper.closed = False
         mocked_discovery = mocker.patch(
@@ -2517,12 +2182,10 @@ class TestDiscordTracker:
             mock_client_wrapper.closed = True
 
         mock_client_wrapper.is_closed = lambda: mock_client_wrapper.closed
-
         with mock.patch.object(
             instance, "_async_interruptible_sleep", side_effect=sleep_side_effect
         ) as mock_sleep:
             await instance._run_main_loop(300)
-
         # Verify our async sleep helper was called with the expected interval
         mock_sleep.assert_called_once_with(10)
         mocked_discovery.assert_called_once()
@@ -2565,12 +2228,10 @@ class TestDiscordTracker:
             mock_client_wrapper.closed = True
 
         mock_client_wrapper.is_closed = lambda: mock_client_wrapper.closed
-
         with mock.patch.object(
             instance, "_async_interruptible_sleep", side_effect=sleep_side_effect
         ) as mock_sleep:
             await instance._run_main_loop(300)
-
         # Verify our async sleep helper was called with the expected interval
         mock_sleep.assert_called_once_with(10)
         mocked_discovery.assert_called_once()
@@ -2591,7 +2252,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Mock client to close after first iteration
         mock_client_wrapper.closed = False
 
@@ -2600,12 +2260,10 @@ class TestDiscordTracker:
             mock_client_wrapper.closed = True
 
         mock_client_wrapper.is_closed = lambda: mock_client_wrapper.closed
-
         with mock.patch.object(
             instance, "_async_interruptible_sleep", side_effect=sleep_side_effect
         ) as mock_sleep:
             await instance._run_main_loop(300)
-
         # Verify our async sleep helper was called with the expected interval
         mock_sleep.assert_called_once_with(10)
 
@@ -2621,10 +2279,8 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mocker.MagicMock()
         instance.log_action_async = mocker.AsyncMock()
-
         # Track signal registration
         with mock.patch.object(
             instance, "_register_signal_handlers"
@@ -2645,16 +2301,12 @@ class TestDiscordTracker:
 
             mock_client_wrapper.start = mock_start
             mock_client_wrapper.close = mock_close
-
             # Mock the main loop to raise KeyboardInterrupt immediately
             with mock.patch.object(instance, "_run_main_loop") as mock_loop:
                 mock_loop.side_effect = KeyboardInterrupt("Test interrupt")
-
                 await instance.run_continuous(300)
-
         # Signal handlers should be registered once
         mock_register_signals.assert_called_once()
-
         instance.logger.info.assert_any_call(
             "Starting multi-guild Discord tracker in continuous mode"
         )
@@ -2679,24 +2331,20 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mocker.MagicMock()
         instance.log_action_async = mocker.AsyncMock()
         instance.cleanup = mocker.AsyncMock()
-
         test_error = Exception("Test error")
 
         async def mock_start(token):
             raise test_error
 
         mock_client_wrapper.start = mock_start
-
         with mock.patch.object(
             instance, "_register_signal_handlers"
         ) as mock_register_signals:
             with pytest.raises(Exception) as exc_info:
                 await instance.run_continuous(300)
-
         assert exc_info.value == test_error
         mock_register_signals.assert_called_once()
         instance.logger.error.assert_called_once_with(
@@ -2718,7 +2366,6 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Setup tracking state
         instance.guild_channels = {
             111111111111111111: [123456789012345678, 234567890123456789],
@@ -2726,7 +2373,6 @@ class TestDiscordTracker:
         }
         instance._update_all_tracked_channels()
         instance.processed_messages = {"msg1", "msg2", "msg3"}
-
         # Mock guild retrieval
         mock_guild1 = mock.MagicMock()
         mock_guild1.name = "Test Guild 1"
@@ -2741,9 +2387,7 @@ class TestDiscordTracker:
             return None
 
         mock_client_wrapper.get_guild = get_guild_side_effect
-
         stats = instance.get_stats()
-
         assert stats["guilds_tracked"] == 2
         assert stats["channels_tracked"] == 3
         assert stats["processed_messages"] == 3
@@ -2762,17 +2406,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Setup tracking state with guild that can't be retrieved
         instance.guild_channels = {111111111111111111: [123456789012345678]}
         instance._update_all_tracked_channels()
         instance.processed_messages = set()
-
         # Mock guild not found - use side_effect instead of return_value
         mock_client_wrapper.get_guild = mock.MagicMock(return_value=None)
-
         stats = instance.get_stats()
-
         assert stats["guilds_tracked"] == 1
         assert stats["channels_tracked"] == 1
         assert "Unknown (111111111111111111)" in stats["guild_details"]
@@ -2795,18 +2435,13 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock guild channels
         mock_guild.fetch_channels = mock.AsyncMock(return_value=[mock_channel])
-
         # Mock channel trackability
         mock_trackable = mock.MagicMock(return_value=True)
         instance._is_channel_trackable = mock_trackable
-
         await instance._discover_guild_channels(mock_guild)
-
         instance.logger.info.assert_called_once_with(
             f"Discovered 1 trackable channels in guild '{mock_guild.name}'"
         )
@@ -2824,14 +2459,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock guild channels to raise exception
         mock_guild.fetch_channels = mock.AsyncMock(side_effect=Exception("Fetch error"))
-
         await instance._discover_guild_channels(mock_guild)
-
         instance.logger.error.assert_called_once_with(
             f"Error discovering channels for guild {mock_guild.name}: Fetch error"
         )
@@ -2848,13 +2479,10 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         mock_client_wrapper.get_channel_return = None
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == 0
 
     @pytest.mark.asyncio
@@ -2868,19 +2496,14 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock get_channel to return None (channel not found)
         mock_client_wrapper.get_channel.return_value = None
-
         # Ensure not rate limited
         instance.last_channel_check = {}
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == 0
         mock_client_wrapper.get_channel.assert_called_once_with(123456789012345678)
         # Should not proceed to process messages if channel is None
@@ -2896,20 +2519,15 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         # Ensure channel is not rate limited
         instance.last_channel_check = {}
-
         # Mock the get_channel method to return our specific mock_channel
         mock_client_wrapper.get_channel.return_value = mock_channel
-
         mock_process = mock.AsyncMock(return_value=2)
         instance._process_channel_messages = mock_process
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == 2
         # Check that _process_channel_messages was called
         assert mock_process.called
@@ -2927,18 +2545,14 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Setup guild channels
         instance.guild_channels = {
             111111111111111111: [1, 2, 3],
             222222222222222222: [4, 5],
             333333333333333333: [6],
         }
-
         instance._update_all_tracked_channels()
-
         assert instance.all_tracked_channels == {1, 2, 3, 4, 5, 6}
         instance.logger.debug.assert_called_once_with(
             "Updated tracked channels: 6 total channels"
@@ -2956,19 +2570,14 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock _get_guilds_to_process to return our test guild
         mock_guilds = [mock_guild]
         instance._get_guilds_to_process = mock.MagicMock(return_value=mock_guilds)
-
         # Mock _discover_guild_channels
         mock_discover = mock.AsyncMock()
         instance._discover_guild_channels = mock_discover
-
         await instance._discover_all_guild_channels()
-
         instance._get_guilds_to_process.assert_called_once()
         mock_discover.assert_called_once_with(mock_guild)
 
@@ -2984,12 +2593,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock _should_process_message to return False
         instance._should_process_message = mock.MagicMock(return_value=False)
-
         # Mock methods that should NOT be called
         mock_extract = mock.AsyncMock()
         instance.extract_mention_data = mock_extract
@@ -2997,9 +2603,7 @@ class TestDiscordTracker:
         instance.process_mention_async = mock_process
         mock_is_processed = mock.AsyncMock()
         instance.is_processed_async = mock_is_processed
-
         await instance._handle_new_message(mock_message)
-
         # Verify early return - these methods should not be called
         instance._should_process_message.assert_called_once_with(mock_message)
         mock_extract.assert_not_called()
@@ -3017,12 +2621,9 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock _should_process_message to return True
         instance._should_process_message = mock.MagicMock(return_value=True)
-
         # Mock methods that should be called
         mock_extract = mock.AsyncMock(return_value={})
         instance.extract_mention_data = mock_extract
@@ -3030,9 +2631,7 @@ class TestDiscordTracker:
         instance.process_mention_async = mock_process
         mock_is_processed = mock.AsyncMock(return_value=False)
         instance.is_processed_async = mock_is_processed
-
         await instance._handle_new_message(mock_message)
-
         # Verify normal processing flow
         instance._should_process_message.assert_called_once_with(mock_message)
         mock_extract.assert_called_once_with(mock_message)
@@ -3050,23 +2649,17 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock get_channel to return a channel
         mock_client_wrapper.get_channel.return_value = mock_channel
-
         # Mock _process_channel_messages
         mock_process = mock.AsyncMock(return_value=3)
         instance._process_channel_messages = mock_process
-
         # Ensure not rate limited
         instance.last_channel_check = {}
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == 3
         mock_client_wrapper.get_channel.assert_called_once_with(123456789012345678)
         mock_process.assert_called_once_with(mock_channel, 111111111111111111)
@@ -3082,29 +2675,22 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock get_channel to return a channel
         mock_client_wrapper.get_channel.return_value = mock_channel
-
         # Mock _process_channel_messages to raise HTTPException with status 429
         http_exception = discord.HTTPException(mock.MagicMock(), "Rate limited")
         http_exception.status = 429
         http_exception.retry_after = 2.5
         instance._process_channel_messages = mock.AsyncMock(side_effect=http_exception)
-
         # Mock _handle_http_exception
         mock_handle_http = mock.AsyncMock(return_value=0)
         instance._handle_http_exception = mock_handle_http
-
         # Ensure not rate limited
         instance.last_channel_check = {}
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == 0
         mock_handle_http.assert_called_once_with(http_exception, 123456789012345678)
 
@@ -3118,19 +2704,15 @@ class TestDiscordTracker:
         mocker,
     ):
         """Test _check_channel_history with Forbidden exception."""
-
         instance = DiscordTracker(
             lambda x: None,
             discord_config,
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock get_channel to return a channel
         mock_client_wrapper.get_channel.return_value = mock_channel
-
         mocker.patch(
             "trackers.discord.DiscordTracker._process_channel_messages",
             side_effect=discord.Forbidden(mock.MagicMock(), "Forbidden"),
@@ -3139,14 +2721,11 @@ class TestDiscordTracker:
         mock_handle_forbidden = mocker.patch(
             "trackers.discord.DiscordTracker._handle_forbidden_exception"
         )
-
         # Ensure not rate limited
         instance.last_channel_check = {}
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == mock.ANY
         mock_handle_forbidden.assert_called_once_with(
             123456789012345678, 111111111111111111
@@ -3163,23 +2742,17 @@ class TestDiscordTracker:
             guilds_collection,
             client_wrapper=mock_client_wrapper,
         )
-
         instance.logger = mock.MagicMock()
-
         # Mock get_channel to return a channel
         mock_client_wrapper.get_channel.return_value = mock_channel
-
         # Mock _process_channel_messages to raise generic Exception
         test_exception = Exception("Test generic error")
         instance._process_channel_messages = mock.AsyncMock(side_effect=test_exception)
-
         # Ensure not rate limited
         instance.last_channel_check = {}
-
         result = await instance._check_channel_history(
             123456789012345678, 111111111111111111
         )
-
         assert result == 0
         instance.logger.error.assert_called_once_with(
             "Error checking channel 123456789012345678: Test generic error"

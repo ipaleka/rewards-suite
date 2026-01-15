@@ -263,13 +263,9 @@ class TelegramTracker(BaseAsyncMentionTracker):
 
         data = {
             "suggester": suggester_value,
-            # "suggester_username": sender_info.get("username"),
-            # "suggester_display_name": sender_info.get("display_name"),
             "suggestion_url": suggestion_url,
             "contribution_url": contribution_url,
             "contributor": contributor_value,
-            # "contributor_username": contributor_info.get("username"),
-            # "contributor_display_name": contributor_info.get("display_name"),
             "type": "message",
             "telegram_chat": chat_title,
             "chat_id": chat.id,
@@ -277,9 +273,9 @@ class TelegramTracker(BaseAsyncMentionTracker):
             "content": message.text if message.text else "",
             "contribution": contribution,
             "timestamp": (
-                message.date.isoformat()
+                int(message.date.timestamp())
                 if hasattr(message, "date")
-                else datetime.now().isoformat()
+                else int(datetime.now().timestamp())
             ),
             "item_id": f"telegram_{chat.id}_{message.id}",
         }

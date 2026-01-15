@@ -596,15 +596,9 @@ class DiscordTracker(BaseAsyncMentionTracker):
 
         data = {
             "suggester": author.display_name,
-            # "suggester": author.id,
-            # "suggester_username": author.name,
-            # "suggester_display_name": author.display_name,
             "suggestion_url": message_url,
             "contribution_url": contribution_url,
             "contributor": contributor.display_name,
-            # "contributor": contributor.id,
-            # "contributor_username": contributor.name,
-            # "contributor_display_name": contributor.display_name,
             "type": "message",
             "discord_channel": message.channel.name,
             "discord_guild": message.guild.name,
@@ -612,7 +606,7 @@ class DiscordTracker(BaseAsyncMentionTracker):
             "guild_id": message.guild.id,
             "content": message.content if message.content else "",
             "contribution": contribution,
-            "timestamp": message.created_at.isoformat(),
+            "timestamp": int(message.created_at.timestamp()),
             "item_id": f"discord_{message.guild.id}_{message.channel.id}_{message.id}",
         }
 

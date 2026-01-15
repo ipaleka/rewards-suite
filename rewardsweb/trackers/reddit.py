@@ -95,7 +95,7 @@ class RedditTracker(BaseMentionTracker):
             "subreddit": comment.subreddit.display_name,
             "content": comment.body if comment.body else "",
             "contribution": contribution,
-            "timestamp": datetime.fromtimestamp(comment.created_utc).isoformat(),
+            "timestamp": comment.created_utc,
             "item_id": comment.id,
         }
         return data
@@ -120,7 +120,7 @@ class RedditTracker(BaseMentionTracker):
             "subreddit": submission.subreddit.display_name,
             "content": submission.title,
             "contribution": submission.selftext,
-            "timestamp": datetime.fromtimestamp(submission.created_utc).isoformat(),
+            "timestamp": submission.created_utc,
             "item_id": submission.id,
         }
         return data

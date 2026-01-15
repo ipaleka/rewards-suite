@@ -141,13 +141,13 @@ class TwitterTracker(BaseMentionTracker):
 
         :param tweet: Twitter tweet object
         :type tweet: :class:`tweepy.models.Tweet`
-        :return: ISO format timestamp string
-        :rtype: str
+        :return: seconds since epoch
+        :rtype: int
         """
         if hasattr(tweet, "created_at") and tweet.created_at:
-            return tweet.created_at.isoformat()
+            return int(tweet.created_at.timestamp())
 
-        return datetime.now().isoformat()
+        return int(datetime.now().timestamp())
 
     def extract_mention_data(self, tweet, user_map):
         """Extract standardized data from Twitter mention.
