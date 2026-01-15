@@ -79,7 +79,7 @@ class TestTrackersTelegram:
         mock_message.text = "Hello @test_bot!"
         mock_message.reply_to_msg_id = 99
         mock_message.date = mocker.MagicMock()
-        mock_message.date.isoformat.return_value = "2023-01-01T00:00:00"
+        mock_message.date.timestamp.return_value = 1768496527.571459
         mock_chat = mocker.MagicMock()
         mock_chat.id = 67890
         mock_chat.title = "Test Group"
@@ -96,7 +96,7 @@ class TestTrackersTelegram:
         assert result["chat_username"] == "testgroup"
         assert result["content"] == "Hello @test_bot!"
         assert result["contribution"] == "This is the original message."
-        assert result["timestamp"] == "2023-01-01T00:00:00"
+        assert result["timestamp"] == 1768496527
 
     @pytest.mark.asyncio
     async def test_trackers_telegramtracker_extract_mention_data_no_reply(

@@ -97,7 +97,7 @@ class TestTrackersReddit:
         mock_comment.author = mock_author
         mock_comment.permalink = "/r/test/comments/123"
         mock_comment.body = "Test comment body"
-        mock_comment.created_utc = 1609459200  # 2021-01-01
+        mock_comment.created_utc = 1609459200
         mock_comment.id = "comment123"
         mock_subreddit = mocker.MagicMock()
         mock_subreddit.display_name = "test"
@@ -119,6 +119,7 @@ class TestTrackersReddit:
         assert result["subreddit"] == "test"
         assert result["content"] == "Test comment body"
         assert result["contribution"] == "Post text"
+        assert result["timestamp"] == 1609459200
 
     def test_trackers_reddittracker_extract_submission_data(
         self, mocker, reddit_config, reddit_subreddits
@@ -148,6 +149,7 @@ class TestTrackersReddit:
         assert result["subreddit"] == "test"
         assert result["content"] == "Test submission title"
         assert result["contribution"] == "Test submission selftext"
+        assert result["timestamp"] == 1609459200
 
     # check_mentions
     def test_trackers_reddittracker_check_mentions_finds_comments(

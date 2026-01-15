@@ -266,7 +266,7 @@ class TestTrackersTwitter:
         mock_tweet = mocker.MagicMock()
         mock_tweet.created_at = datetime(2023, 1, 1, 12, 0, 0)
         result = instance._get_timestamp(mock_tweet)
-        assert result == "2023-01-01T12:00:00"
+        assert result == 1672574400
 
     def test_trackers_twittertracker_get_timestamp_no_created_at(
         self, mocker, twitter_config
@@ -276,8 +276,8 @@ class TestTrackersTwitter:
         mock_tweet = mocker.MagicMock()
         mock_tweet.created_at = None
         result = instance._get_timestamp(mock_tweet)
-        assert "T" in result  # Should be ISO format with T
-        assert len(result) > 0
+        assert isinstance(result, int)
+        assert result > 1768496527
 
     def test_trackers_twittertracker_get_timestamp_no_created_at_attr(
         self, mocker, twitter_config
@@ -291,8 +291,8 @@ class TestTrackersTwitter:
 
         mock_tweet = SimpleMock()
         result = instance._get_timestamp(mock_tweet)
-        assert "T" in result  # Should be ISO format with T
-        assert len(result) > 0
+        assert isinstance(result, int)
+        assert result > 1768496527
 
     # extract_mention_data
     def test_trackers_twittertracker_extract_mention_data_reply(
