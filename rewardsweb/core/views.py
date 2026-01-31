@@ -30,6 +30,7 @@ from django.views.generic import (
     FormView,
     ListView,
     RedirectView,
+    TemplateView,
     UpdateView,
 )
 from django.views.generic.detail import SingleObjectMixin
@@ -124,6 +125,26 @@ class IndexView(ListView):
         :rtype: :class:`django.db.models.QuerySet`
         """
         return Contribution.objects.filter(confirmed=False).reverse()
+
+
+class PrivacyView(TemplateView):
+    """View for displaying the Privacy Policy page.
+
+    :ivar template_name: HTML template for the privacy page
+    :type template_name: str
+    """
+
+    template_name = "privacy.html"
+
+
+class TermsView(TemplateView):
+    """View for displaying the Terms of Use page.
+
+    :ivar template_name: HTML template for the terms page
+    :type template_name: str
+    """
+
+    template_name = "terms.html"
 
 
 class ContributionDetailView(DetailView):

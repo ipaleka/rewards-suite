@@ -1,0 +1,93 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}Terms of Use{% endblock %}
+
+{% block content %}
+<div class="flex justify-center fade-in">
+  <div class="card w-full max-w-4xl bg-base-100 shadow-xl">
+    <div class="card-body p-8 sm:p-12">
+      
+      <div class="border-b border-base-300 pb-6 mb-6">
+        <h2 class="card-title text-3xl font-bold mb-2">Terms of Use</h2>
+        <p class="text-base-content/70">Last Updated: <span class="font-semibold">January 31, 2026</span></p>
+      </div>
+
+      <div class="space-y-8 text-base-content">
+        
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">1. Acceptance of Terms</h3>
+          <p class="leading-relaxed">
+            By accessing or using the Rewards Suite website (the "Service"), operated by <strong>ASA Stats</strong>, or by connecting your blockchain wallet to the Service, you agree to be bound by these Terms of Use ("Terms"). If you disagree with any part of these Terms, you may not use the Service.
+          </p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">2. Description of Service</h3>
+          <p>The Rewards Suite is an infrastructure designed to automate the workflow from social media suggestions to on-chain payouts. It allows users to submit non-tangible contributions (such as feedback, bug reports, and promotion) and receive rewards upon validation.</p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">3. Eligibility</h3>
+          <p>By using the Service, you represent that you are at least 18 years old and are not located in a country subject to government embargoes that would prohibit your participation in blockchain-based financial transactions.</p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">4. User Contributions</h3>
+          <ul class="list-disc list-inside ml-2 space-y-2">
+            <li><strong>Submission:</strong> You may submit contributions via supported social media integrations (Discord, X/Twitter, Reddit, Telegram).</li>
+            <li><strong>Validation:</strong> ASA Stats administrators reserve the sole right to determine the validity of a contribution. We may reject suggestions that are duplicates, invalid, or non-applicable.</li>
+            <li><strong>License:</strong> By submitting content (feedback, code, text), you grant ASA Stats a non-exclusive, worldwide, royalty-free license to use, reproduce, and implement such content.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">5. Rewards and Claiming</h3>
+          <ul class="list-disc list-inside ml-2 space-y-2">
+            <li><strong>Allocation:</strong> Rewards are allocated via smart contracts only after a contribution is marked as "resolved" or "addressed" by an administrator.</li>
+            <li><strong>Claiming Window:</strong> You have <strong>365 days</strong> from the time of allocation to claim your reward. If you fail to claim your reward within this period, ASA Stats reserves the right to withdraw the unclaimed funds from the smart contract, and you forfeit your right to the reward.</li>
+            <li><strong>Wallet Security:</strong> You are solely responsible for the security of your wallet and private keys. ASA Stats is not liable for any funds lost due to wallet compromise or lost keys.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">6. Prohibited Activities</h3>
+          <p class="mb-2">You agree not to:</p>
+          <ul class="list-disc list-inside ml-2 space-y-1">
+            <li>Use bots or automated methods to spam the Service with invalid contributions.</li>
+            <li>Submit content that is unlawful, offensive, or violates the intellectual property rights of others.</li>
+            <li>Attempt to reverse engineer or disrupt the smart contracts or website infrastructure.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">7. Disclaimers</h3>
+          <ul class="list-disc list-inside ml-2 space-y-2">
+            <li><strong>"As Is" Basis:</strong> The Service is provided on an "AS IS" and "AS AVAILABLE" basis. ASA Stats makes no warranties regarding the reliability, accuracy, or availability of the Service.</li>
+            <li><strong>Blockchain Risks:</strong> You acknowledge the inherent risks of using blockchain technology, including regulatory uncertainty, transaction delays, and network failures (e.g., on the Algorand network). ASA Stats is not responsible for losses caused by underlying blockchain network issues.</li>
+            <li><strong>No Employment:</strong> Participation in the Rewards Suite does not constitute an employment relationship. Rewards are voluntary incentives for community participation.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">8. Limitation of Liability</h3>
+          <p>To the maximum extent permitted by law, ASA Stats shall not be liable for any indirect, incidental, special, or consequential damages, including loss of profits, data, or cryptocurrency, arising out of your use of the Service.</p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">9. Changes to Terms</h3>
+          <p>We reserve the right to modify these Terms at any time. We will notify users of significant changes by updating the date at the top of this document. Continued use of the Service after changes constitutes acceptance of the new Terms.</p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">10. Contact Information</h3>
+          <p class="mb-2">For any questions regarding these Terms, please contact ASA Stats at:</p>
+          <ul class="list-none ml-2 space-y-1">
+            <li><span class="font-bold">Email:</span> <a href="mailto:support@asastats.com" class="link link-primary">support@asastats.com</a></li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

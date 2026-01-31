@@ -17,6 +17,18 @@ class TestCoreUrls:
         assert url.lookup_str == "core.views.IndexView"
         assert url.name == "index"
 
+    def test_core_urls_privacy(self):
+        url = self._url_from_pattern("privacy/")
+        assert isinstance(url, URLPattern)
+        assert url.lookup_str == "core.views.PrivacyView"
+        assert url.name == "privacy"
+
+    def test_core_urls_terms(self):
+        url = self._url_from_pattern("terms/")
+        assert isinstance(url, URLPattern)
+        assert url.lookup_str == "core.views.TermsView"
+        assert url.name == "terms"
+
     def test_core_urls_profile(self):
         url = self._url_from_pattern("profile/")
         assert isinstance(url, URLPattern)
@@ -132,4 +144,4 @@ class TestCoreUrls:
         assert url.name == "issue_webhook"
 
     def test_core_urls_patterns_count(self):
-        assert len(urls.urlpatterns) == 20
+        assert len(urls.urlpatterns) == 22

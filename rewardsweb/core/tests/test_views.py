@@ -12,7 +12,13 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy
 from django.views import View
-from django.views.generic import DetailView, FormView, ListView, UpdateView
+from django.views.generic import (
+    DetailView,
+    FormView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
 from django.views.generic.detail import SingleObjectMixin
 
 from core.forms import DeactivateProfileForm, ProfileFormSet, UpdateUserForm
@@ -22,10 +28,12 @@ from core.views import (
     IndexView,
     IssueWebhookView,
     LoginView,
+    PrivacyView,
     ProfileDisplay,
     ProfileEditView,
     ProfileUpdate,
     SignupView,
+    TermsView,
     TransparencyReportView,
     UnconfirmedContributionsView,
 )
@@ -157,6 +165,36 @@ class TestDbIndexView:
         assert context["num_contributions"] == 0
         # When there are no contributions, total_rewards can be None
         assert context["total_rewards"] in [0, None]
+
+
+class PrivacyPageTest(TestCase):
+    def test_privacy_page_renders_privacy_template(self):
+        response = self.client.get("/privacy/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "privacy.html")
+
+
+class TestPrivacyView:
+    """Testing class for :class:`core.views.PrivacyView`."""
+
+    def test_privacyview_is_subclass_of_detailview(self):
+        assert issubclass(PrivacyView, TemplateView)
+
+
+class TermsPageTest(TestCase):
+    def test_terms_page_renders_terms_template(self):
+        response = self.client.get("/terms/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "terms.html")
+
+
+class TestTermsView:
+    """Testing class for :class:`core.views.TermsView`."""
+
+    def test_termsview_is_subclass_of_detailview(self):
+        assert issubclass(TermsView, TemplateView)
 
 
 class EditProfilePageTest(TestCase):
