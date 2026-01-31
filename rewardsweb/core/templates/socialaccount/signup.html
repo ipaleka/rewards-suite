@@ -79,28 +79,50 @@
           {% endif %}
 
           {% for field in form %}
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-semibold">{{ field.label }}</span>
-                {% if field.field.required %}
-                  <span class="label-text-alt text-error">*</span>
-                {% endif %}
-              </label>
-              <div class="p-1 rounded-lg border-2 border-base-300">
-                {{ field }}
-              </div>
-              {% if field.help_text %}
-                <label class="label">
-                  <span class="label-text-alt text-base-content/60">{{ field.help_text }}</span>
+            {% if field.name == 'terms' %}
+              <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-3 items-start">
+                  <div class="mt-0.5">
+                    {{ field }}
+                  </div>
+                  <span class="label-text">
+                    {{ field.label }}
+                    {% if field.field.required %}
+                      <span class="text-error">*</span>
+                    {% endif %}
+                  </span>
                 </label>
-              {% endif %}
-              {% if field.errors %}
-                <div class="text-error text-sm mt-2 flex items-center gap-2">
-                  <i class="fas fa-exclamation-circle"></i>
-                  {{ field.errors }}
+                {% if field.errors %}
+                  <div class="text-error text-sm mt-1 ml-8 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ field.errors }}
+                  </div>
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">{{ field.label }}</span>
+                  {% if field.field.required %}
+                    <span class="label-text-alt text-error">*</span>
+                  {% endif %}
+                </label>
+                <div class="p-1 rounded-lg border-2 border-base-300">
+                  {{ field }}
                 </div>
-              {% endif %}
-            </div>
+                {% if field.help_text %}
+                  <label class="label">
+                    <span class="label-text-alt text-base-content/60">{{ field.help_text }}</span>
+                  </label>
+                {% endif %}
+                {% if field.errors %}
+                  <div class="text-error text-sm mt-2 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ field.errors }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
           {% endfor %}
 
           <button type="submit" class="btn btn-outline btn-success w-full mt-4">

@@ -7,7 +7,9 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms import (
+    BooleanField,
     CharField,
+    CheckboxInput,
     CheckboxSelectMultiple,
     ChoiceField,
     DecimalField,
@@ -40,6 +42,24 @@ from utils.constants.core import (
     TRANPARENCY_REPORT_REQUIRED_FIELDS,
 )
 from utils.constants.ui import MISSING_OPTION_TEXT, TEXTINPUT_CLASS
+
+
+class CustomSignupForm(Form):
+    """Form class for confirming agreement with the Terms of Use.
+
+    :var CustomSignupForm.terms: Terms of Use agreement Boolean field
+    :type CustomSignupForm.terms: :class:`django.forms.CheckboxInput`
+    """
+
+    terms = BooleanField(
+        required=True,
+        label="I have read and agreed to the Terms of Use",
+        widget=CheckboxInput(),
+    )
+
+    def signup(self, request, user):
+        """A custom signup form must offer this method."""
+        pass
 
 
 class ContributionEditForm(ModelForm):

@@ -7,7 +7,9 @@ from captcha.fields import CaptchaField, CaptchaTextInput
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.forms import (
+    BooleanField,
     CharField,
+    CheckboxInput,
     CheckboxSelectMultiple,
     ChoiceField,
     DecimalField,
@@ -30,6 +32,7 @@ from core.forms import (
     ContributionEditForm,
     ContributionInvalidateForm,
     CreateIssueForm,
+    CustomSignupForm,
     DeactivateProfileForm,
     IssueLabelsForm,
     ProfileForm,
@@ -39,6 +42,33 @@ from core.forms import (
 )
 from core.models import Contribution, Cycle, IssueStatus, Profile
 from utils.constants.ui import MISSING_OPTION_TEXT
+
+
+class TestCustomSignupForm:
+    """Testing class for :class:`CustomSignupForm`."""
+
+    # # CustomSignupForm
+    def test_customsignupform_issubclass_of_form(self):
+        assert issubclass(CustomSignupForm, Form)
+
+    def test_customsignupform_terms_field(self):
+        form = CustomSignupForm()
+        assert "terms" in form.base_fields
+        assert isinstance(form.base_fields["terms"], BooleanField)
+        assert isinstance(form.base_fields["terms"].widget, CheckboxInput)
+        assert (
+            form.base_fields["terms"].label
+            == "I have read and agreed to the Terms of Use"
+        )
+
+    # # signup
+    def test_customsignupform_overrides_signup_method(self):
+        form_class = CustomSignupForm
+        assert hasattr(form_class, "signup")
+
+    def test_customsignupform_signup_method_execution(self):
+        form = CustomSignupForm()
+        form.signup(request=None, user=None)
 
 
 class TestContributionEditForm:
