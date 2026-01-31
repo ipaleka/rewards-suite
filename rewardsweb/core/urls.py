@@ -6,6 +6,8 @@ from core import views
 
 urlpatterns = [
     path("", views.IndexView.as_view(), name="index"),
+    path("privacy/", views.PrivacyView.as_view(), name="privacy"),
+    path("terms/", views.TermsView.as_view(), name="terms"),
     path("profile/", views.ProfileEditView.as_view(), name="profile"),
     path(
         "profile/deactivate/",

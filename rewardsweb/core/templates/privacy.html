@@ -1,0 +1,116 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}Privacy Policy{% endblock %}
+
+{% block content %}
+<div class="flex justify-center fade-in">
+  <div class="card w-full max-w-4xl bg-base-100 shadow-xl">
+    <div class="card-body p-8 sm:p-12">
+      
+      <div class="border-b border-base-300 pb-6 mb-6">
+        <h2 class="card-title text-3xl font-bold mb-2">Privacy Policy</h2>
+        <p class="text-base-content/70">Last Updated: <span class="font-semibold">January 31, 2026</span></p>
+      </div>
+
+      <div class="space-y-8 text-base-content">
+        
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">1. Introduction</h3>
+          <p class="leading-relaxed">
+            Welcome to the Rewards Suite, provided by <strong>ASA Stats</strong> ("we," "us," or "our"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains what information we collect, how we use it, and your rights when you access our website and use our services to submit contributions and claim rewards.
+          </p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">2. Information We Collect</h3>
+          <p class="mb-4">We collect the minimum amount of data necessary to verify your contributions and facilitate blockchain-based rewards.</p>
+          
+          <div class="pl-4 border-l-4 border-base-300 space-y-4">
+            <div>
+              <h4 class="font-bold text-lg">A. Personal Data</h4>
+              <p class="mb-2">When you interact with the Rewards Suite, we may collect the following:</p>
+              <ul class="list-disc list-inside ml-2 space-y-1">
+                <li><strong>Social Media Handles:</strong> Usernames and IDs from platforms including Discord, X (formerly Twitter), Reddit, and Telegram when you submit a contribution or suggestion.</li>
+                <li><strong>Wallet Information:</strong> Your public blockchain wallet address (e.g., Algorand address) required to connect to the site and claim rewards.</li>
+                <li><strong>Contribution Content:</strong> The text, links, and media contained in your bug reports, feature requests, or feedback.</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 class="font-bold text-lg">B. Usage Data</h4>
+              <p>We may collect information on how the Service is accessed and used, such as your computer's Internet Protocol (IP) address, browser type, browser version, and the pages of our Service that you visit.</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">3. How We Use Your Information</h3>
+          <p class="mb-2">We use your data for the following specific purposes:</p>
+          <ul class="list-disc list-inside ml-2 space-y-2">
+            <li><strong>Verification:</strong> To link your social media suggestions to your contribution profile and verify the validity of bug reports or feature requests.</li>
+            <li><strong>Reward Distribution:</strong> To execute smart contracts that allocate and distribute rewards to your connected wallet address.</li>
+            <li><strong>Transparency:</strong> To generate public transparency reports regarding reward allocations and project governance.</li>
+            <li><strong>Communication:</strong> To notify you of the status of your contribution (e.g., via social media bot responses like emojis or comments).</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">4. Blockchain and Public Data</h3>
+          <div class="alert alert-warning shadow-sm mb-4">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+              <h4 class="font-bold">Important Notice Regarding Web3 Privacy</h4>
+              <p class="text-sm">The Rewards Suite operates on public blockchain infrastructure (such as Algorand).</p>
+            </div>
+          </div>
+          <ul class="list-disc list-inside ml-2 space-y-2">
+            <li><strong>Immutability:</strong> Transactions made to claim rewards are recorded on a public ledger. Once data is written to the blockchain, it cannot be deleted or altered by ASA Stats.</li>
+            <li><strong>Public Visibility:</strong> Your wallet address and the transaction history associated with our smart contracts are publicly visible. We cannot control how third parties interpret or use this on-chain data.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">5. Sharing Your Information</h3>
+          <p class="mb-2">We do not sell your personal data. We share data only in the following circumstances:</p>
+          <ul class="list-disc list-inside ml-2 space-y-2">
+            <li><strong>Service Providers:</strong> We may use third-party tools for issue tracking (e.g., GitHub, GitLab, Bitbucket) where your contribution data may be processed.</li>
+            <li><strong>Legal Requirements:</strong> If required by law or in response to valid requests by public authorities.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">6. Data Retention</h3>
+          <p>We retain your personal data only for as long as is necessary for the purposes set out in this Privacy Policy. However, please note that any data recorded on the blockchain is permanent and cannot be deleted by us.</p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">7. Your Rights</h3>
+          <p class="mb-2">Depending on your location (e.g., GDPR for EU users, CCPA for California residents), you may have rights regarding your data held on our centralized servers, including:</p>
+          <ul class="list-disc list-inside ml-2 space-y-1 mb-3">
+            <li>The right to access, update, or delete the information we have on you.</li>
+            <li>The right to withdraw consent.</li>
+          </ul>
+          <div class="alert alert-info shadow-sm mb-4">
+            <i class="fas fa-info-circle"></i>
+            <div>
+              <h4 class="font-bold">Note</h4>
+              <p class="text-sm">These rights generally apply to off-chain data (like our internal databases) and do not extend to immutable blockchain records..</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold mb-3 text-primary">8. Contact Us</h3>
+          <p class="mb-2">If you have any questions about this Privacy Policy, please contact us at:</p>
+          <ul class="list-none ml-2 space-y-1">
+            <li><span class="font-bold">Entity:</span> ASA Stats</li>
+            <li><span class="font-bold">Email:</span> <a href="mailto:support@asastats.com" class="link link-primary">support@asastats.com</a></li>
+            <li><span class="font-bold">Website:</span> <a href="https://www.asastats.com" target="_blank" class="link link-primary">https://www.asastats.com</a></li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

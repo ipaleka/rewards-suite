@@ -140,6 +140,7 @@ ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_USER_DISPLAY = "utils.helpers.user_display"
+ACCOUNT_SIGNUP_FORM_CLASS = "core.forms.CustomSignupForm"
 
 SOCIALACCOUNT_PROVIDERS = {
     # https://discord.com/developers/applications
