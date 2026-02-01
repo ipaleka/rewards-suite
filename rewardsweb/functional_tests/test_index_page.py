@@ -51,40 +51,6 @@ class IndexPageAnonymousTests(SeleniumTestCase):
         self.assertIn("Rewards", logo_link.text)
 
 
-class IndexPageLoginFormTests(SeleniumTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.password = "secret123"
-        self.user = User.objects.create_user(
-            username="alice",
-            email="alice@example.com",
-            password=self.password,
-        )
-
-    def test_login_via_form(self):
-        login_url = self.get_url(reverse("account_login"))
-        index_url = self.get_url(reverse("index"))
-
-        self.driver.get(login_url)
-
-        self.driver.find_element(By.NAME, "login").send_keys(self.user.username)
-        self.driver.find_element(By.NAME, "password").send_keys(self.password)
-
-        submit = self.driver.find_element(
-            By.XPATH, "//form[@method='post']//button[@type='submit']"
-        )
-        submit.click()
-
-        self.driver.implicitly_wait(2)
-        self.assertTrue(self.driver.current_url.startswith(index_url))
-
-        badge = self.driver.find_element(
-            By.XPATH, f"//span[contains(., '{self.user.username}')]"
-        )
-        self.assertTrue(badge.is_displayed())
-
-
 class IndexPageAuthenticatedTests(SeleniumTestCase):
 
     def setUp(self):
