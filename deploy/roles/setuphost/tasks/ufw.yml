@@ -6,14 +6,19 @@
   become: true
   tags: [hardening_ufw]
 
-- name: Configure UFW default policies
+- name: Configure UFW default incoming policy
   community.general.ufw:
-    direction: "{{ item.direction }}"
-    policy: "{{ item.policy }}"
+    direction: incoming
+    policy: deny
   become: true
-  loop:
-    - { direction: 'incoming', policy: 'deny' }
-    - { direction: 'outgoing', policy: 'allow' }
+  notify: Restart ufw
+  tags: [hardening_ufw]
+
+- name: Configure UFW default outgoing policy
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+  become: true
   notify: Restart ufw
   tags: [hardening_ufw]
 
