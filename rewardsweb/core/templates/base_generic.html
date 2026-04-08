@@ -79,9 +79,17 @@
                 </details>
               </li>
               {% else %}
-              <li><a href="{% url 'account_login' %}?next={{ request.get_full_path|urlencode }}" hx-boost="false" hx-disable="true" class="btn btn-outline btn-primary btn-sm">
-                <i class="fas fa-sign-in-alt mr-2"></i>Login
-              </a></li>
+              <li>
+                {% if "/accounts/" in request.path %}
+                  <a href="{% url 'account_login' %}" hx-boost="false" hx-disable="true" class="btn btn-outline btn-primary btn-sm">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                  </a>
+                {% else %}
+                  <a href="{% url 'account_login' %}?next={{ request.get_full_path|urlencode }}" hx-boost="false" hx-disable="true" class="btn btn-outline btn-primary btn-sm">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                  </a>
+                {% endif %}
+              </li>
               {% endif %}
             </ul>
           </div>
@@ -225,10 +233,17 @@
             </li>
             {% else %}
             <li>
-              <a href="{% url 'account_login' %}?next={{ request.get_full_path|urlencode }}" hx-boost="false" hx-disable="true">
-                <i class="fas fa-sign-in-alt w-5"></i>
-                Login
-              </a>
+              {% if "/accounts/" in request.path %}
+                <a href="{% url 'account_login' %}" hx-boost="false" hx-disable="true">
+                  <i class="fas fa-sign-in-alt w-5"></i>
+                  Login
+                </a>
+              {% else %}
+                <a href="{% url 'account_login' %}?next={{ request.get_full_path|urlencode }}" hx-boost="false" hx-disable="true">
+                  <i class="fas fa-sign-in-alt w-5"></i>
+                  Login
+                </a>
+              {% endif %}
             </li>
             {% endif %}
           </ul>
